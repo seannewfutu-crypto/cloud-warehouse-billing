@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>云仓代发费用对账系统 | Система сверки стоимости облачного фулфилмента</title>
+  <title>云仓代发费用对账系统 v6.0</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -17,8 +17,8 @@
   <div class="max-w-6xl mx-auto">
     <!-- 标题 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm mb-6 text-center">
-      <h1 class="text-2xl font-bold text-gray-900">📦 云仓代发费用对账系统 v5.1</h1>
-      <h2 class="text-lg font-bold text-gray-600 mt-1">📦 Система сверки стоимости облачного фулфилмента v5.1</h2>
+      <h1 class="text-2xl font-bold text-gray-900">📦 云仓代发费用对账系统 v6.0</h1>
+      <h2 class="text-lg font-bold text-gray-600 mt-1">📦 Система сверки стоимости облачного фулфилмента v6.0</h2>
       <p class="text-gray-500 text-sm mt-1">合同: NFT-20250422-1 | Договор: NFT-20250422-1</p>
       <p class="text-gray-500 text-sm">Xiao Ma Ltd. → Asia Song Ltd.</p>
     </div>
@@ -264,6 +264,21 @@
         <button onclick="exportCSV()" class="w-full mt-4 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">
           📊 导出明细CSV / Экспорт деталей CSV
         </button>
+        
+        <!-- 新增：数据导入区域 -->
+        <div class="mt-4 bg-red-50 rounded-lg p-3 border border-red-200">
+          <h4 class="font-bold text-red-800 text-sm mb-2">💾 数据备份与恢复 / Резервное копирование</h4>
+          <label class="block text-xs text-gray-600 mb-2">选择CSV文件导入（将合并数据） / Выберите CSV-файл (данные объединятся)</label>
+          <input type="file" id="csvFileInput" accept=".csv" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200">
+          <div class="mt-2 text-xs text-gray-500">
+            <p>• 请选择之前导出的"云仓每日明细_XXXX年X月.csv"文件。</p>
+            <p>• 系统将读取文件内容并与当前数据合并。</p>
+            <p>• 如果日期重复，将以文件中的数据为准（覆盖）。</p>
+          </div>
+          <button onclick="importCSV()" class="w-full mt-3 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 text-sm">
+            📤 导入CSV数据 / Импорт CSV
+          </button>
+        </div>
       </div>
     </div>
 
@@ -949,11 +964,11 @@ function del(date) {
 }
 
 function save() { 
-  localStorage.setItem('wfFinalCorrected', JSON.stringify(data)); 
+  localStorage.setItem('wf_v6.0', JSON.stringify(data)); 
 }
 
 function load() { 
-  const s = localStorage.getItem('wfFinalCorrected'); 
+  const s = localStorage.getItem('wf_v6.0'); 
   if (s) data = JSON.parse(s); 
 }
 
@@ -1074,6 +1089,100 @@ function exportInvoiceCSV() {
   a.download = '云仓对账单_' + curY + '年' + (curM+1) + '月.csv'; 
   a.click();
 }
-</script>
-</body>
-</html>
+
+// 导入CSV数据
+function importCSV() {
+  const fileInput = document.getElementById('csvFileInput');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    alert('请先选择一个CSV文件 / Пожалуйста, выберите CSV-файл');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const csvData = e.target.result;
+      const lines = csvData.split('\n');
+      
+      // 检查文件格式（简单的表头验证）
+      if (lines.length < 2 || !lines[0].includes('日期')) {
+        alert('CSV文件格式不正确，请使用本系统导出的文件 / Неверный формат CSV-файла, используйте файл, экспортированный этой системой');
+        return;
+      }
+      
+      // 解析CSV行（跳过中俄双语表头行）
+      let importedCount = 0;
+      let overwrittenCount = 0;
+      
+      for (let i = 2; i < lines.length; i++) { // 从第3行开始（跳过两行表头）
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // 分割CSV字段（处理包含逗号的字段）
+        const parts = line.split(',').map(part => part.trim());
+        if (parts.length < 15) continue; // 确保有足够的列
+        
+        const [
+          date,           // 日期
+          singleOrders,   // 一单一件
+          multiOrders,    // 一单多件
+          avgItems,       // 平均件数
+          expressBag,     // 快递袋
+          box,            // 纸箱
+          bubbleBag,      // 气泡袋
+          wrap,           // 缠绕膜
+          returnOrders,   // 退货单数
+          deliveryFee,    // 送达揽收点费
+          materialFee,    // 包装材料费
+          returnFee,      // 退货提货费
+          addServiceFee,  // 增值服务费
+          basicServiceFee,// 基础服务费
+          total           // 当日合计
+        ] = parts;
+        
+        // 检查日期格式
+        if (!date || !date.match(/^\d{4}-\d{2}-\d{2}$/)) continue;
+        
+        // 将字符串转换为数字
+        const parsedData = {
+          date,
+          singleOrders: parseInt(singleOrders) || 0,
+          multiOrders: parseInt(multiOrders) || 0,
+          avgItems: parseFloat(avgItems) || 2,
+          expressBag: parseInt(expressBag) || 0,
+          box: parseInt(box) || 0,
+          bubbleBag: parseInt(bubbleBag) || 0,
+          wrap: parseInt(wrap) || 0,
+          returnOrders: parseInt(returnOrders) || 0,
+          deliveryFee: parseFloat(deliveryFee) || 0,
+          materialFee: parseFloat(materialFee) || 0,
+          returnFee: parseFloat(returnFee) || 0,
+          addServiceFee: parseFloat(addServiceFee) || 0,
+          basicServiceFee: parseFloat(basicServiceFee) || 0,
+          total: parseFloat(total) || 0
+        };
+        
+        // 重新计算总订单数（因为CSV中可能不包含这个字段）
+        parsedData.totalOrders = parsedData.singleOrders + parsedData.multiOrders;
+        
+        // 重新计算基础服务费生效状态
+        parsedData.hasBasicService = parsedData.totalOrders >= 200;
+        
+        // 检查该日期数据是否已存在
+        if (data[date]) {
+          overwrittenCount++;
+        } else {
+          importedCount++;
+        }
+        
+        // 更新或添加数据
+        data[date] = parsedData;
+      }
+      
+      // 保存到本地存储
+      save();
+      
+      // 更新界面
+      render()
