@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ozon 定价计算器 v9.0 - 分层扣点版</title>
+  <title>Ozon 定价计算器 v9.0 - 完整修复版</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     input[type="range"]::-webkit-slider-thumb {
@@ -30,11 +30,11 @@
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-6 px-4">
-  <div class="max-w-5xl mx-auto">
+  <div class="max-w-6xl mx-auto">
     <!-- 标题 -->
     <div class="text-center mb-6">
       <h1 class="text-2xl font-bold text-gray-900">📦 Ozon 定价计算器 v9.0</h1>
-      <p class="text-gray-500 text-sm mt-1">积分抵佣金版 · 2025费率 · FBO/FBS · ₽卢布/KZT · 实时汇率</p>
+      <p class="text-gray-500 text-sm mt-1">完整修复版 | 自动计算修复 | KZT切换正常 | 两层定价模型</p>
     </div>
 
     <!-- 模式切换 & 货币切换 -->
@@ -51,7 +51,6 @@
               FBS
             </button>
           </div>
-          <p id="modeHint" class="text-xs text-gray-500 mt-1">FBO: OZON仓储配送</p>
         </div>
         <!-- 货币选择 -->
         <div>
@@ -64,12 +63,12 @@
               KZT 坚戈
             </button>
           </div>
-          <p id="currencyHint" class="text-xs text-gray-500 mt-1">汇率: <span id="rateDisplay">¥1 = ₽12.5000</span> <button onclick="fetchExchangeRates()" class="ml-1 text-orange-500 hover:text-orange-600 font-medium">🔄</button></p>
+          <p id="currencyHint" class="text-xs text-gray-500 mt-1">汇率: <span id="rateDisplay">¥1 = ₽12.5000</span></p>
         </div>
       </div>
     </div>
 
-    <div class="grid md:grid-cols-2 gap-4">
+    <div class="grid lg:grid-cols-3 gap-4">
       <!-- 左侧：成本输入 -->
       <div class="bg-white rounded-2xl p-5 shadow-sm">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">📝 成本信息</h2>
@@ -77,24 +76,23 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">采购成本 (¥)</label>
-            <input type="number" id="procurement" step="0.01" placeholder="商品采购价格" 
+            <input type="number" id="procurement" step="0.01" value="100" placeholder="商品采购价格" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">商品重量 (kg)</label>
-            <input type="number" id="weight" step="0.01" placeholder="商品重量" 
+            <input type="number" id="weight" step="0.01" value="1" placeholder="商品重量" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">商品体积 (m³)</label>
-            <input type="number" id="volume" step="0.0001" placeholder="长×宽×高 (立方米)" 
+            <label class="block text-sm font-medium text-gray-700 mb-1">商品体积 (升)</label>
+            <input type="number" id="volume" step="0.01" value="5" placeholder="长×宽×高 (升)" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
-            <p class="text-xs text-gray-500 mt-1">体积重 = 体积×200</p>
           </div>
 
           <div>
@@ -106,14 +104,14 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">头程国内运费 (¥)</label>
-            <input type="number" id="shippingDomestic" step="0.01" value="0" placeholder="国内到仓库的运费" 
+            <input type="number" id="shippingDomestic" step="0.01" value="10" placeholder="国内到仓库的运费" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
           </div>
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">报关费/清关费 (¥)</label>
-            <input type="number" id="customs" step="0.01" value="0" placeholder="报关和清关费用" 
+            <input type="number" id="customs" step="0.01" value="5" placeholder="报关和清关费用" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
           </div>
@@ -147,7 +145,7 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">其他费用 (¥)</label>
-            <input type="number" id="other" step="0.01" value="0" placeholder="包装/质检等" 
+            <input type="number" id="other" step="0.01" value="5" placeholder="包装/质检等" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
           </div>
@@ -155,29 +153,26 @@
 
         <hr class="my-5">
 
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">⚙️ 平台设置</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">⚙️ 平台费率设置</h2>
         
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Ozon 类目佣金 (%)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ozon 销售佣金 (%)</label>
             <select id="commission" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               onchange="calculate()">
-              <option value="10">10% - 电子产品</option>
-              <option value="8">8% - 服装鞋类</option>
-              <option value="10">10% - 家居用品</option>
-              <option value="12">12% - 化妆品</option>
-              <option value="20" selected>20% - 其他类目</option>
+              <option value="14">14% - ≤100卢布商品</option>
+              <option value="20" selected>20% - 100-300卢布商品</option>
+              <option value="25">25% - 服装类目（基础）</option>
             </select>
           </div>
 
           <!-- FBO专属费率 -->
           <div id="fboRateFields">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">FBO仓储费率 (<span id="currencyLabel1">₽</span>/天/m³)</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">FBO仓储费率 (<span id="currencyLabel1">₽</span>/天/升)</label>
               <input type="number" id="fboStorageRate" step="0.01" value="2.5" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 oninput="calculate()">
-              <p class="text-xs text-gray-500 mt-1">OZON标准约 <span id="currencyLabel2">₽</span>0.15/天/m³</p>
             </div>
 
             <div class="mt-3">
@@ -185,7 +180,6 @@
               <input type="number" id="fboFulfillmentRate" step="0.01" value="46" 
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                 oninput="calculate()">
-              <p class="text-xs text-gray-500 mt-1">OZON拣货打包配送费，约 <span id="currencyLabel4">₽</span>20-50/kg</p>
             </div>
           </div>
           
@@ -194,17 +188,29 @@
             <input type="number" id="paymentFee" step="0.1" value="2" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
-            <p class="text-xs text-gray-500 mt-1">通常 1-3%</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">配送服务费率 (%)</label>
+            <input type="number" id="deliveryFee" step="0.1" value="2.1" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+              oninput="calculate()">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">提现手续费率 (%)</label>
+            <input type="number" id="withdrawalFee" step="0.1" value="1.2" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+              oninput="calculate()">
           </div>
           
           <hr class="my-3 border-gray-200">
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">🎯 广告费占比 (%)</label>
-            <input type="number" id="adFee" step="0.1" value="28" 
+            <label class="block text-sm font-medium text-gray-700 mb-1">🎯 广告费占比 (ACoS%)</label>
+            <input type="number" id="adFee" step="0.1" value="20" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
-            <p class="text-xs text-gray-500 mt-1">OZON广告费用占销售额比例</p>
           </div>
           
           <div class="mt-3">
@@ -212,34 +218,32 @@
             <input type="number" id="returnRate" step="0.1" value="15" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
-            <p class="text-xs text-gray-500 mt-1">预计退货占总销售比例</p>
           </div>
           
           <div class="mt-3">
-            <label class="block text-sm font-medium text-gray-700 mb-1">🔄 刷单费 (%)</label>
-            <input type="number" id="brushFee" step="0.1" value="0" 
+            <label class="block text-sm font-medium text-gray-700 mb-1">🔄 刷单/测评费 (%)</label>
+            <input type="number" id="brushFee" step="0.1" value="2" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
-            <p class="text-xs text-gray-500 mt-1">刷单/测评费用占销售额比例</p>
           </div>
-          
+
           <div class="mt-3">
             <label class="block text-sm font-medium text-gray-700 mb-1">💎 积分比例 (%)</label>
             <input type="number" id="pointsRate" step="0.1" value="20" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
               oninput="calculate()">
-            <p class="text-xs text-gray-500 mt-1">积分回馈占销售价（1%不可抵扣佣金，99%可抵佣金）</p>
+            <p class="text-xs text-gray-500 mt-1">积分回馈（1%不可抵扣，99%可抵佣金）</p>
           </div>
           
           <hr class="my-3 border-gray-200">
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">目标利润率 (%)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">目标净利润率 (%)</label>
             <div class="flex items-center gap-3">
-              <input type="range" id="margin" min="10" max="50" value="25" 
+              <input type="range" id="margin" min="5" max="40" value="15" 
                 class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 oninput="calculate()">
-              <span id="marginDisplay" class="font-bold text-orange-500 w-14 text-right text-lg">25%</span>
+              <span id="marginDisplay" class="font-bold text-orange-500 w-14 text-right text-lg">15%</span>
             </div>
           </div>
           
@@ -252,11 +256,11 @@
         </div>
       </div>
 
-      <!-- 右侧：计算结果 -->
+      <!-- 中间：计算结果 -->
       <div class="bg-white rounded-2xl p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold text-gray-900">📊 测算结果</h2>
-          <button onclick="calculate();fetchExchangeRates();" class="px-3 py-1.5 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200 transition-colors">
+          <h2 class="text-lg font-semibold text-gray-900">📊 定价结果（两层模型）</h2>
+          <button onclick="calculate()" class="px-3 py-1.5 bg-orange-100 text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-200 transition-colors">
             🔄 刷新计算
           </button>
         </div>
@@ -273,222 +277,93 @@
           </div>
         </div>
 
-        <!-- 计算公式 -->
-        <div id="formulaBox" class="bg-blue-50 rounded-xl p-4 mb-4">
-          <h3 class="text-sm font-semibold text-blue-800 mb-2">📐 计算公式（v8.0 分层版）</h3>
-          <div id="formulaContent" class="text-xs font-mono text-blue-700 space-y-1">
-            <p>售价 = (中国段成本×汇率 + 固定平台费)</p>
-            <p>÷ (1-积分比例)</p>
-            <p>÷ (1-佣金-支付费-广告费-退货率-刷单费)</p>
-            <p>÷ (1-利润率)</p>
-          </div>
-          <div id="layerInfo" class="mt-2 text-xs text-blue-600"></div>
-          <div id="formulaWarning" class="hidden mt-3 p-3 bg-yellow-100 rounded-lg">
-            <p class="text-xs text-yellow-800 font-medium">⚠️ 任意一层 divisor ≤ 0，无法定价！</p>
-            <p id="warningDetail" class="text-xs text-yellow-700 mt-1"></p>
-          </div>
-        </div>
-
-        <!-- 利润分析 -->
-        <div class="bg-gray-50 rounded-xl p-4 mb-4">
-          <h3 class="text-sm font-medium text-gray-700 mb-3">📈 利润分析</h3>
-          <div class="text-sm space-y-2">
-            <div class="flex justify-between">
-              <span class="text-gray-600">中国段总成本</span>
-              <span id="totalCostCN" class="font-medium">¥0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">平台扣点(<span id="feeCurrency1">₽</span>)</span>
-              <span id="totalFeesLocal" class="font-medium text-red-500">-<span id="feeCurrency2">₽</span>0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">折合人民币</span>
-              <span id="totalFeesCNY" class="font-medium text-red-500">≈¥0.00</span>
-            </div>
-            <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between font-semibold">
-              <span class="text-gray-900">总成本 (¥)</span>
-              <span id="grandTotalCost" class="text-gray-900">¥0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">预计利润</span>
-              <span id="profit" class="font-medium text-green-600">¥0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">实际利润率</span>
-              <span id="actualMargin" class="font-medium text-green-600">0%</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">利润率达标</span>
-              <span id="marginOk" class="font-medium">—</span>
-            </div>
-          </div>
-        </div>
-
         <!-- 中国段成本明细 -->
         <div class="bg-gray-50 rounded-xl p-4 mb-4">
-          <h3 class="text-sm font-medium text-gray-700 mb-3">💰 中国段成本明细</h3>
+          <h3 class="text-sm font-medium text-gray-700 mb-3">💰 中国段成本明细 (¥)</h3>
           <div class="text-sm space-y-2">
-            <div class="flex justify-between">
-              <span class="text-gray-600">采购成本</span>
-              <span id="cost1" class="font-medium">¥0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">头程国内运费</span>
-              <span id="costDomestic" class="font-medium">¥0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">头程-中国→俄罗斯</span>
-              <span id="costShipping" class="font-medium">¥0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">报关/清关费</span>
-              <span id="costCustoms" class="font-medium">¥0.00</span>
-            </div>
-            <div class="flex justify-between" id="labelingRow">
-              <span class="text-gray-600">贴单处理费</span>
-              <span id="costLabeling" class="font-medium">¥0.00</span>
-            </div>
-            <div class="flex justify-between" id="fbsLastMileRow" style="display:none">
-              <span class="text-gray-600">FBS尾程配送</span>
-              <span id="costFbsLastMile" class="font-medium">¥0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">其他费用</span>
-              <span id="costOther" class="font-medium">¥0.00</span>
-            </div>
+            <div class="flex justify-between"><span class="text-gray-600">采购成本</span><span id="cost1" class="font-medium">¥0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">头程国内运费</span><span id="costDomestic" class="font-medium">¥0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">头程-中国→俄罗斯</span><span id="costShipping" class="font-medium">¥0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">报关/清关费</span><span id="costCustoms" class="font-medium">¥0.00</span></div>
+            <div class="flex justify-between" id="labelingRow"><span class="text-gray-600">贴单处理费</span><span id="costLabeling" class="font-medium">¥0.00</span></div>
+            <div class="flex justify-between" id="fbsLastMileRow" style="display:none"><span class="text-gray-600">FBS尾程配送</span><span id="costFbsLastMile" class="font-medium">¥0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">其他费用</span><span id="costOther" class="font-medium">¥0.00</span></div>
             <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between font-semibold">
-              <span class="text-gray-900">中国段总成本</span>
-              <span id="totalCostCN2" class="text-gray-900">¥0.00</span>
+              <span class="text-gray-900">中国段总成本</span><span id="totalCostCN" class="text-gray-900">¥0.00</span>
             </div>
           </div>
         </div>
 
-        <!-- 平台费用明细 -->
+        <!-- 平台固定费用 -->
         <div class="bg-red-50 rounded-xl p-4 mb-4">
-          <h3 class="text-sm font-medium text-gray-700 mb-3">🏭 平台费用明细 (<span id="feeCurrency3">₽</span>)</h3>
+          <h3 class="text-sm font-medium text-gray-700 mb-3">🏭 平台固定费用 (<span id="feeCurrency3">₽</span>)</h3>
           <div class="text-sm space-y-2" id="platformFees">
-            <!-- FBO显示 -->
             <div id="fboFees">
-              <div class="flex justify-between">
-                <span class="text-gray-600">FBO操作费 (拣货打包配送)</span>
-                <span id="costFulfillment" class="font-medium text-red-500">-₽0.00</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">FBO仓储费 (<span id="daysDisplay">30</span>天)</span>
-                <span id="costFBOStorage" class="font-medium text-red-500">-₽0.00</span>
-              </div>
+              <div class="flex justify-between"><span class="text-gray-600">FBO操作费</span><span id="costFulfillment" class="font-medium text-red-500">-₽0.00</span></div>
+              <div class="flex justify-between"><span class="text-gray-600">FBO仓储费</span><span id="costFBOStorage" class="font-medium text-red-500">-₽0.00</span></div>
             </div>
-            <!-- FBS显示 -->
             <div id="fbsFees" class="hidden">
-              <div class="flex justify-between">
-                <span class="text-gray-600">FBS配送服务费</span>
-                <span id="costFbsDelivery" class="font-medium text-red-500">-₽0.00</span>
-              </div>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Ozon佣金 (<span id="commRate">10</span>%)</span>
-              <span id="commFee" class="font-medium text-red-500">-₽0.00</span>
-            </div>
-            <div class="flex justify-between pl-3 text-xs text-gray-500">
-              <span>积分抵销后</span>
-              <span id="commissionAfterPointsDisplay" class="text-red-500">0</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">支付手续费 (<span id="payRate">2</span>%)</span>
-              <span id="payFee" class="font-medium text-red-500">-₽0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">🎯 广告费 (<span id="adRate">18</span>%)</span>
-              <span id="costAdFee" class="font-medium text-red-500">-₽0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">📦 退货 (<span id="returnRateDisplay">15</span>%)</span>
-              <span id="costReturnFee" class="font-medium text-red-500">-₽0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">🔄 刷单费 (<span id="brushRate">2</span>%)</span>
-              <span id="costBrushFee" class="font-medium text-red-500">-₽0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">💎 积分收入 (<span id="pointsRateDisplay">20</span>%)</span>
-              <span id="costPointsFee" class="font-medium text-green-500">+₽0.00</span>
-            </div>
-            <div class="flex justify-between pl-3 text-xs text-gray-500">
-              <span>可抵扣佣金</span>
-              <span id="deductiblePointsDisplay" class="text-purple-600">0</span>
-            </div>
-            <div class="flex justify-between pl-3 text-xs text-gray-500">
-              <span>剩余积分(奖金)</span>
-              <span id="remainingPointsDisplay" class="text-green-600">0</span>
+              <div class="flex justify-between"><span class="text-gray-600">FBS配送服务费</span><span id="costFbsDelivery" class="font-medium text-red-500">-₽0.00</span></div>
             </div>
             <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between font-semibold">
-              <span class="text-gray-900">平台总扣点</span>
-              <span id="totalFeesRUB" class="text-red-500">-₽0.00</span>
+              <span class="text-gray-900">平台固定费合计</span><span id="totalFixedFees" class="text-red-500">-₽0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：净收入分析 -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">💵 净收入分析</h2>
+        
+        <!-- 收入部分 -->
+        <div class="bg-green-50 rounded-xl p-4 mb-4">
+          <h3 class="text-sm font-medium text-gray-700 mb-3">📈 收入项 (<span id="incomeCurrency">₽</span>)</h3>
+          <div class="text-sm space-y-2">
+            <div class="flex justify-between"><span class="text-gray-600">商品销售额</span><span id="revenue" class="font-medium text-green-600">₽0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">💎 积分收入</span><span id="bonusOffset" class="font-medium text-green-600">+₽0.00</span></div>
+            <div class="flex justify-between pl-3 text-xs text-gray-500"><span>可抵扣佣金</span><span id="deductiblePointsDisplay" class="text-purple-600">₽0.00</span></div>
+            <div class="flex justify-between pl-3 text-xs text-gray-500"><span>剩余积分(奖金)</span><span id="remainingPointsDisplay" class="text-green-600">₽0.00</span></div>
+            <div class="flex justify-between pl-3 text-xs text-gray-500"><span>佣金抵销进度</span><span id="pointsUtilizationDisplay">0%</span></div>
+            <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between font-semibold">
+              <span class="text-gray-900">总收入</span><span id="totalRevenue" class="text-green-600">₽0.00</span>
             </div>
           </div>
         </div>
 
-        <!-- 操作按钮 -->
-        <div class="space-y-3">
-          <button id="copyBtn" onclick="copyToClipboard()"
-            class="w-full py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
-            <span>📋</span> 复制定价信息
-          </button>
-          <button id="exportBtn" onclick="exportAsHTML()"
-            class="w-full py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
-            <span>📄</span> 导出HTML文件
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 公式说明 -->
-    <div class="mt-6 bg-white rounded-2xl p-5 shadow-sm">
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">📐 分层公式说明</h3>
-      <div class="grid md:grid-cols-2 gap-4">
-        <div class="bg-blue-50 rounded-xl p-4">
-          <h4 class="font-semibold text-blue-800 mb-2">📦 FBO</h4>
-          <div class="font-mono text-sm text-blue-700 space-y-1">
-            <p><strong>中国段成本</strong> = 采购 + 国内运费 + 头程 + 报关 + 贴单费 + 其他</p>
-            <p><strong>平台固定费</strong> = 操作费 + 仓储费</p>
-            <p><strong>售价(₽)</strong> = (成本×汇率+平台费) ÷ (1-佣金-广告-物流-退货-刷单) ÷ (1-利润率)</p>
+        <!-- 成本部分 -->
+        <div class="bg-red-50 rounded-xl p-4 mb-4">
+          <h3 class="text-sm font-medium text-gray-700 mb-3">📉 成本项 (<span id="costCurrency">₽</span>)</h3>
+          <div class="text-sm space-y-2">
+            <div class="flex justify-between"><span class="text-gray-600">中国段成本</span><span id="costCNLocal" class="font-medium text-red-500">-₽0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">平台佣金</span><span id="commissionCost" class="font-medium text-red-500">-₽0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">广告费用</span><span id="adCost" class="font-medium text-red-500">-₽0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">支付手续费</span><span id="paymentCost" class="font-medium text-red-500">-₽0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">配送服务费</span><span id="deliveryCost" class="font-medium text-red-500">-₽0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">退货成本</span><span id="returnCost" class="font-medium text-red-500">-₽0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">刷单/测评费</span><span id="brushCost" class="font-medium text-red-500">-₽0.00</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">提现手续费</span><span id="withdrawalCost" class="font-medium text-red-500">-₽0.00</span></div>
+            <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between font-semibold">
+              <span class="text-gray-900">总成本</span><span id="totalCostLocal" class="text-red-500">-₽0.00</span>
+            </div>
           </div>
         </div>
-        <div class="bg-green-50 rounded-xl p-4">
-          <h4 class="font-semibold text-green-800 mb-2">🚚 FBS</h4>
-          <div class="font-mono text-sm text-green-700 space-y-1">
-            <p><strong>中国段成本</strong> = 采购 + 国内运费 + 头程 + 报关 + FBS尾程 + 其他</p>
-            <p><strong>平台固定费</strong> = FBS配送服务费</p>
-            <p><strong>售价(₽)</strong> = (成本×汇率+平台费) ÷ (1-佣金-广告-物流-退货-刷单) ÷ (1-利润率)</p>
+
+        <!-- 净收入汇总 -->
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white mb-4 shadow-lg">
+          <div class="text-center">
+            <p class="text-sm opacity-80 mb-1">净收入 (<span id="netCurrency">₽</span>)</p>
+            <p id="netIncomeLocal" class="text-4xl font-bold">₽0.00</p>
+          </div>
+          <div class="text-center mt-3">
+            <p class="text-sm opacity-80 mb-1">折合人民币</p>
+            <p id="netIncomeCNY" class="text-2xl font-bold">¥0.00</p>
+          </div>
+          <div class="text-center mt-3">
+            <p class="text-sm opacity-80 mb-1">实际净利润率</p>
+            <p id="actualNetMargin" class="text-2xl font-bold">0%</p>
           </div>
         </div>
-      </div>
-      <div class="mt-4 grid md:grid-cols-3 gap-4 text-sm">
-        <div class="bg-purple-50 rounded-lg p-3"><p class="font-medium text-purple-800">💎 积分抵佣金</p><p class="text-purple-600 mt-1">积分×99%可抵扣佣金</p></div>
-        <div class="bg-red-50 rounded-lg p-3"><p class="font-medium text-red-800">📋 扣点层</p><p class="text-red-600 mt-1">÷ (1 - 佣金 - 支付 - 广告 - 退货 - 刷单)</p></div>
-        <div class="bg-green-50 rounded-lg p-3"><p class="font-medium text-green-800">💰 利润层</p><p class="text-green-600 mt-1">÷ (1 - 目标利润率)</p></div>
-      </div>
-    </div>
-
-    <div class="mt-4 bg-white rounded-2xl p-5 shadow-sm">
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">📋 OZON 类目佣金参考</h3>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="bg-gray-50">
-              <th class="text-left px-4 py-2 rounded-tl-lg">类目</th>
-              <th class="text-right px-4 py-2">佣金</th>
-              <th class="text-right px-4 py-2 rounded-tr-lg">说明</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr><td class="px-4 py-2">电子产品</td><td class="text-right px-4 py-2 font-medium">10%</td><td class="text-right px-4 py-2 text-gray-500">手机、电脑、电子配件</td></tr>
-            <tr class="bg-gray-50"><td class="px-4 py-2">服装鞋类</td><td class="text-right px-4 py-2 font-medium">8%</td><td class="text-right px-4 py-2 text-gray-500">成人/儿童服装、鞋类</td></tr>
-            <tr><td class="px-4 py-2">家居用品</td><td class="text-right px-4 py-2 font-medium">10%</td><td class="text-right px-4 py-2 text-gray-500">家用电器、厨房用品、家具</td></tr>
-            <tr class="bg-gray-50"><td class="px-4 py-2">化妆品</td><td class="text-right px-4 py-2 font-medium">12%</td><td class="text-right px-4 py-2 text-gray-500">护肤品、彩妆、香水</td></tr>
-            <tr><td class="px-4 py-2">其他类目</td><td class="text-right px-4 py-2 font-medium">15%</td><td class="text-right px-4 py-2 text-gray-500">图书、玩具、食品等</td></tr>
-          </tbody>
-        </table>
       </div>
     </div>
   </div>
@@ -497,10 +372,6 @@
     // 全局状态
     let currentMode = 'fbo';
     let currentCurrency = 'rub';
-    
-    // 汇率（默认/备用）
-    let RATE_RUB = 12.5;
-    let RATE_KZT = 60.6;
     let ratesLoaded = false;
     
     // 实时获取汇率
@@ -512,46 +383,39 @@
         const usdRub = data.rates.RUB;
         const usdKzt = data.rates.KZT;
         
-        // 计算 CNY 为基准的汇率
-        RATE_RUB = usdRub / usdCny;  // 1 CNY = X RUB
-        RATE_KZT = usdKzt / usdCny;  // 1 CNY = X KZT
+        const RATE_RUB = usdRub / usdCny;
+        const RATE_KZT = usdKzt / usdCny;
         
         ratesLoaded = true;
         
-        // 更新显示
-        updateRateDisplay();
+        const isRUB = currentCurrency === 'rub';
+        const rateDisplay = isRUB 
+          ? `¥1 = ₽${RATE_RUB.toFixed(4)}` 
+          : `¥1 = KZT ${RATE_KZT.toFixed(4)}`;
+        document.getElementById('rateDisplay').textContent = rateDisplay;
         
-        // 如果当前汇率input是默认值，则自动更新
         const rateInput = document.getElementById('rate');
-        if (parseFloat(rateInput.value) === 12.5 || parseFloat(rateInput.value) === 60.6 || rateInput.value === '') {
-          if (currentCurrency === 'rub') {
-            rateInput.value = RATE_RUB.toFixed(4);
-          } else {
-            rateInput.value = RATE_KZT.toFixed(4);
-          }
+        if (isRUB) {
+          rateInput.value = RATE_RUB.toFixed(4);
+        } else {
+          rateInput.value = RATE_KZT.toFixed(4);
         }
         
         calculate();
-        
-        console.log('汇率已更新 - RUB:', RATE_RUB.toFixed(4), 'KZT:', RATE_KZT.toFixed(4));
       } catch (error) {
         console.log('汇率获取失败，使用默认汇率');
+        const isRUB = currentCurrency === 'rub';
+        const rateDisplay = isRUB 
+          ? '¥1 = ₽12.5000 (默认)' 
+          : '¥1 = KZT 60.6000 (默认)';
+        document.getElementById('rateDisplay').textContent = rateDisplay;
       }
-    }
-    
-    function updateRateDisplay() {
-      const isRUB = currentCurrency === 'rub';
-      const rateDisplay = isRUB 
-        ? `¥1 = ₽${RATE_RUB.toFixed(4)} (实时)` 
-        : `¥1 = KZT ${RATE_KZT.toFixed(4)} (实时)`;
-      document.getElementById('rateDisplay').textContent = rateDisplay;
     }
     
     function setMode(mode) {
       currentMode = mode;
       document.getElementById('modeFBO').classList.toggle('mode-active', mode === 'fbo');
       document.getElementById('modeFBS').classList.toggle('mode-active', mode === 'fbs');
-      document.getElementById('modeHint').textContent = mode === 'fbo' ? 'FBO: OZON仓储配送' : 'FBS: 卖家仓储配送';
       
       // 显示/隐藏字段
       document.getElementById('fboFields').classList.toggle('hidden', mode !== 'fbo');
@@ -568,33 +432,31 @@
     function setCurrency(currency) {
       currentCurrency = currency;
       const isRUB = currency === 'rub';
-      const rate = isRUB ? RATE_RUB : RATE_KZT;
       const currencySymbol = isRUB ? '₽' : 'KZT ';
-      const rateDisplay = isRUB 
-        ? `¥1 = ₽${RATE_RUB.toFixed(4)} (实时)` 
-        : `¥1 = KZT ${RATE_KZT.toFixed(4)} (实时)`;
       
       document.getElementById('currencyRUB').classList.toggle('mode-active', isRUB);
       document.getElementById('currencyKZT').classList.toggle('mode-active', !isRUB);
-      document.getElementById('rateDisplay').textContent = rateDisplay;
-      document.getElementById('rate').value = rate;
       
       // 更新货币符号显示
-      const labels = ['currencyLabel1','currencyLabel2','currencyLabel3','currencyLabel4','currencyLabel5'];
+      const labels = ['currencyLabel1', 'currencyLabel3', 'currencyLabel5'];
       labels.forEach(id => {
-        if (document.getElementById(id)) document.getElementById(id).textContent = currencySymbol;
+        const el = document.getElementById(id);
+        if (el) el.textContent = currencySymbol;
       });
       
       // 更新结果区货币
       document.getElementById('priceCurrency1').textContent = currencySymbol;
-      document.getElementById('feeCurrency1').textContent = currencySymbol;
-      document.getElementById('feeCurrency2').textContent = currencySymbol;
       document.getElementById('feeCurrency3').textContent = currencySymbol;
+      document.getElementById('incomeCurrency').textContent = currencySymbol;
+      document.getElementById('costCurrency').textContent = currencySymbol;
+      document.getElementById('netCurrency').textContent = currencySymbol;
       
-      calculate();
+      // 获取汇率
+      fetchExchangeRates();
     }
     
     function calculate() {
+      // 获取输入值
       const procurement = parseFloat(document.getElementById('procurement').value) || 0;
       const weight = parseFloat(document.getElementById('weight').value) || 0;
       const volume = parseFloat(document.getElementById('volume').value) || 0;
@@ -605,24 +467,23 @@
       const labeling = parseFloat(document.getElementById('labeling').value) || 0;
       const fbsLastMile = parseFloat(document.getElementById('fbsLastMile').value) || 0;
       const other = parseFloat(document.getElementById('other').value) || 0;
-      const commission = parseFloat(document.getElementById('commission').value) / 100;
+      const commissionRate = parseFloat(document.getElementById('commission').value) / 100;
       const fboStorageRate = parseFloat(document.getElementById('fboStorageRate').value) || 0;
       const fboFulfillmentRate = parseFloat(document.getElementById('fboFulfillmentRate').value) || 0;
       const paymentFeeRate = parseFloat(document.getElementById('paymentFee').value) / 100;
+      const deliveryFeeRate = parseFloat(document.getElementById('deliveryFee').value) / 100;
+      const withdrawalFeeRate = parseFloat(document.getElementById('withdrawalFee').value) / 100;
       const adFeeRate = parseFloat(document.getElementById('adFee').value) / 100;
       const returnRateVal = parseFloat(document.getElementById('returnRate').value) / 100;
       const brushFeeRate = parseFloat(document.getElementById('brushFee').value) / 100;
       const pointsRateVal = parseFloat(document.getElementById('pointsRate').value) / 100;
       const margin = parseFloat(document.getElementById('margin').value) / 100;
-      const rate = parseFloat(document.getElementById('rate').value) || (currentCurrency === 'rub' ? RATE_RUB : RATE_KZT);
+      const rate = parseFloat(document.getElementById('rate').value) || 12.5;
       
       const currencySymbol = currentCurrency === 'rub' ? '₽' : 'KZT ';
       
       // 更新显示
-      document.getElementById('marginDisplay').textContent = document.getElementById('margin').value + '%';
-      document.getElementById('commRate').textContent = document.getElementById('commission').value;
-      document.getElementById('payRate').textContent = document.getElementById('paymentFee').value;
-      document.getElementById('daysDisplay').textContent = storageDays;
+      document.getElementById('marginDisplay').textContent = (margin * 100).toFixed(0) + '%';
       
       // ===== 中国段成本 =====
       const shippingCost = weight * shippingCN;
@@ -634,124 +495,56 @@
         totalCostCN += fbsLastMileCost;
       }
       
-      // ===== 平台费用 (₽/₸) =====
-      let platformFixedFees = 0; // 固定平台费（不随售价变）
-      let commissionFee = 0;     // 佣金
-      let paymentFee = 0;       // 支付费
-      
+      // ===== 平台固定费用 (不随售价变化) =====
+      let platformFixedFees = 0;
       if (currentMode === 'fbo') {
-        // FBO: 有操作费和仓储费
         const fboFulfillment = weight * fboFulfillmentRate;
         const fboStorage = volume * fboStorageRate * storageDays;
         platformFixedFees = fboFulfillment + fboStorage;
       } else {
-        // FBS: 有配送服务费（类似操作费）
-        const fbsDelivery = weight * fboFulfillmentRate; // 复用FBO操作费率作为FBS配送费率
+        const fbsDelivery = weight * fboFulfillmentRate;
         platformFixedFees = fbsDelivery;
       }
       
-      // ===== 计算售价（分层版）=====
-      // 售价 = (中国段成本×汇率 + 固定平台费)
-      // ÷ (1-积分比例) ÷ (1-佣金-支付费-广告费-退货率-刷单费) ÷ (1-利润率)
-      // ===== 计算售价（积分抵佣金版 v9）=====
-      // 积分不再作为除数，而是作为收入添加
-      const layer2 = 1 - commission - paymentFeeRate - adFeeRate - returnRateVal - brushFeeRate;
-      const layer3 = 1 - margin;
-
-      let priceLocal = 0;
-      let priceCNY = 0;
-      if (layer2 > 0 && layer3 > 0) {
-        priceLocal = (totalCostCN * rate + platformFixedFees) / layer2 / layer3;
-        priceCNY = priceLocal / rate;
-      }
-
-      // ===== 积分收入计算（v9 新机制）=====
-      // 积分 = 售价 × 积分比例（其中 1% 不可抵扣佣金）
-      const pointsIncome = priceLocal * pointsRateVal;
+      // ===== 定价公式（积分抵佣金版 v9）=====
+      // 积分不再作为除数（不在这里扣），而是作为收入在净收入中计算
+      // 售价需覆盖：广告+支付+配送+退货+刷单+提现+佣金+利润
+      const allDeductionsRate = commissionRate + adFeeRate + paymentFeeRate + deliveryFeeRate + returnRateVal + brushFeeRate + withdrawalFeeRate;
+      const priceLocal = (totalCostCN * rate + platformFixedFees) / (1 - allDeductionsRate) / (1 - margin);
+      const priceCNY = priceLocal / rate;
+      
+      // ===== 净收入计算 =====
+      const revenue = priceLocal;
+      const commissionCost = revenue * commissionRate;
+      const adCost = revenue * adFeeRate;
+      const paymentCost = revenue * paymentFeeRate;
+      const deliveryCost = revenue * deliveryFeeRate;
+      const returnCost = revenue * returnRateVal;
+      const brushCost = revenue * brushFeeRate;
+      const withdrawalCost = revenue * withdrawalFeeRate;
+      
+      // ===== 积分抵佣金机制（v9）=====
+      // 积分 = 售价 × 积分比例
+      // 其中 1% 不可抵扣佣金，99% 可抵扣佣金（上限佣金×99%）
+      const pointsIncome = revenue * pointsRateVal;
       const nonDeductiblePoints = pointsIncome * 0.01;
-      const maxCommissionOffset = priceLocal * commission * 0.99;
+      const maxCommissionOffset = revenue * commissionRate * 0.99;
       const deductiblePoints = Math.min(pointsIncome * 0.99, maxCommissionOffset);
       const remainingPoints = Math.max(0, pointsIncome - deductiblePoints - nonDeductiblePoints);
+      const commissionAfterPoints = Math.max(0, commissionCost - deductiblePoints);
+      const pointsUtilization = commissionCost > 0 ? Math.min(1, deductiblePoints / commissionCost) * 100 : 100;
       
-      // ===== 佣金抵销分析 =====
-      const commissionFee = priceLocal * commission;
-      const commissionAfterPoints = Math.max(0, commissionFee - deductiblePoints);
-      const pointsUtilization = commissionFee > 0 ? Math.min(1, deductiblePoints / commissionFee) * 100 : 100;
-      
-      // ===== 平台扣点明细（佣金已被积分部分抵销）=====
-      // 积分不再作为扣点，而是收入来源
-      commissionFee = priceLocal * commission;
-      paymentFee = priceLocal * paymentFeeRate;
-      const adFeeVal = priceLocal * adFeeRate;
-      const returnFeeVal = priceLocal * returnRateVal;
-      const brushFeeVal = priceLocal * brushFeeRate;
-      const totalFeesLocal = platformFixedFees + commissionAfterPoints + paymentFee + adFeeVal + returnFeeVal + brushFeeVal;
-      
-      // ===== 利润计算（积分抵佣金）=====
-      // 净收入 = 售价 - 各扣点 - 中国段成本 + 积分收入
-      const totalFeesCNY = totalFeesLocal / rate;
-      const grandTotalCost = totalCostCN + totalFeesCNY;
-      const profit = priceCNY - grandTotalCost + pointsIncome / rate;
-      const actualMargin = priceCNY > 0 ? (profit / priceCNY) * 100 : 0;
+      const totalRevenue = revenue + deductiblePoints + remainingPoints;
+      const costCNLocal = totalCostCN * rate;
+      const totalCostLocal = commissionAfterPoints + adCost + paymentCost + deliveryCost + returnCost + brushCost + withdrawalCost;
+      const netIncomeLocal = totalRevenue - costCNLocal - totalCostLocal;
+      const netIncomeCNY = netIncomeLocal / rate;
+      const actualNetMargin = revenue > 0 ? (netIncomeLocal / revenue) * 100 : 0;
       
       // ===== 更新UI =====
       // 售价
       document.getElementById('priceMain').textContent = currencySymbol + priceLocal.toFixed(2);
       document.getElementById('priceCNY').textContent = '¥' + priceCNY.toFixed(2);
-      
-      // 利润
-      document.getElementById('totalCostCN').textContent = '¥' + totalCostCN.toFixed(2);
-      document.getElementById('totalFeesLocal').innerHTML = '-' + currencySymbol + totalFeesLocal.toFixed(2);
-      document.getElementById('totalFeesCNY').textContent = '≈¥' + totalFeesCNY.toFixed(2);
-      document.getElementById('grandTotalCost').textContent = '¥' + grandTotalCost.toFixed(2);
-      document.getElementById('profit').textContent = '¥' + profit.toFixed(2);
-      
-      const actualMarginEl = document.getElementById('actualMargin');
-      actualMarginEl.textContent = actualMargin.toFixed(1) + '%';
-      actualMarginEl.className = actualMargin >= 25 ? 'font-medium text-green-600' : 'font-medium text-red-500';
-      
-      const marginOkEl = document.getElementById('marginOk');
-      marginOkEl.textContent = actualMargin >= 25 ? '✅ 达标' : '❌ 未达标';
-      marginOkEl.className = actualMargin >= 25 ? 'font-medium text-green-600' : 'font-medium text-red-500';
-      
-      // ===== 更新公式显示 =====
-      const targetMarginPct = parseFloat(document.getElementById('margin').value);
-      const commPct = parseFloat(document.getElementById('commission').value);
-      const payPct = parseFloat(document.getElementById('paymentFee').value);
-      const adPct = parseFloat(document.getElementById('adFee').value);
-      const returnPct = parseFloat(document.getElementById('returnRate').value);
-      const brushPct = parseFloat(document.getElementById('brushFee').value);
-      const pointsPct = parseFloat(document.getElementById('pointsRate').value);
-      const modeName = currentMode === 'fbo' ? 'FBO' : 'FBS';
-
-      // 分层信息
-      const layer1Pct = pointsPct;
-      const layer2Pct = commPct + payPct + adPct + returnPct + brushPct;
-      const layer3Pct = targetMarginPct;
-
-      // 更新分层信息显示
-      const layerInfo = document.getElementById('layerInfo');
-      if (layerInfo) {
-        layerInfo.textContent = `第一层:(1-${layer1Pct}%) → 第二层:(1-${layer2Pct}%) → 第三层:(1-${layer3Pct}%)`;
-      }
-
-      // 检查每层是否有效
-      const layer1Val = 1 - layer1Pct/100;
-      const layer2Val = 1 - layer2Pct/100;
-      const layer3Val = 1 - layer3Pct/100;
-      const formulaWarning = document.getElementById('formulaWarning');
-      const warningDetail = document.getElementById('warningDetail');
-
-      if (layer1Val <= 0 || layer2Val <= 0 || layer3Val <= 0) {
-        formulaWarning.classList.remove('hidden');
-        let msg = '';
-        if (layer1Val <= 0) msg += `积分${layer1Pct}%太大 `;
-        if (layer2Val <= 0) msg += `扣点+广告+退货+刷单${layer2Pct}%太大 `;
-        if (layer3Val <= 0) msg += `利润率${layer3Pct}%太大`;
-        warningDetail.textContent = msg + '，无法定价！';
-      } else {
-        formulaWarning.classList.add('hidden');
-      }
       
       // 中国段成本明细
       document.getElementById('cost1').textContent = '¥' + procurement.toFixed(2);
@@ -761,315 +554,43 @@
       document.getElementById('costLabeling').textContent = '¥' + labeling.toFixed(2);
       document.getElementById('costFbsLastMile').textContent = '¥' + fbsLastMileCost.toFixed(2);
       document.getElementById('costOther').textContent = '¥' + other.toFixed(2);
-      document.getElementById('totalCostCN2').textContent = '¥' + totalCostCN.toFixed(2);
+      document.getElementById('totalCostCN').textContent = '¥' + totalCostCN.toFixed(2);
       
-      // 平台费用明细
+      // 平台固定费用
       if (currentMode === 'fbo') {
         document.getElementById('costFulfillment').textContent = '-' + currencySymbol + (weight * fboFulfillmentRate).toFixed(2);
         document.getElementById('costFBOStorage').textContent = '-' + currencySymbol + (volume * fboStorageRate * storageDays).toFixed(2);
+        document.getElementById('totalFixedFees').textContent = '-' + currencySymbol + platformFixedFees.toFixed(2);
       } else {
         document.getElementById('costFbsDelivery').textContent = '-' + currencySymbol + (weight * fboFulfillmentRate).toFixed(2);
+        document.getElementById('totalFixedFees').textContent = '-' + currencySymbol + platformFixedFees.toFixed(2);
       }
-      document.getElementById('commFee').textContent = '-' + currencySymbol + commissionFee.toFixed(2);
-      document.getElementById('payFee').textContent = '-' + currencySymbol + paymentFee.toFixed(2);
-      document.getElementById('costAdFee').textContent = '-' + currencySymbol + adFeeVal.toFixed(2);
-      document.getElementById('costReturnFee').textContent = '-' + currencySymbol + returnFeeVal.toFixed(2);
-      document.getElementById('costBrushFee').textContent = '-' + currencySymbol + brushFeeVal.toFixed(2);
-      document.getElementById('costPointsFee').textContent = '-' + currencySymbol + pointsVal.toFixed(2);
-      document.getElementById('totalFeesRUB').textContent = '-' + currencySymbol + totalFeesLocal.toFixed(2);
       
-      // 更新费率显示
-      document.getElementById('adRate').textContent = document.getElementById('adFee').value;
-      document.getElementById('returnRateDisplay').textContent = document.getElementById('returnRate').value;
-      document.getElementById('brushRate').textContent = document.getElementById('brushFee').value;
-      document.getElementById('pointsRateDisplay').textContent = document.getElementById('pointsRate').value;
-    }
-    
-    function copyToClipboard() {
-      const currencySymbol = currentCurrency === 'rub' ? '₽' : 'KZT ';
-      const modeText = currentMode === 'fbo' ? 'FBO' : 'FBS';
-      const priceMain = document.getElementById('priceMain').textContent;
-      const priceCNY = document.getElementById('priceCNY').textContent;
-      const profit = document.getElementById('profit').textContent;
-      const totalCost = document.getElementById('grandTotalCost').textContent;
-      const actualMargin = document.getElementById('actualMargin').textContent;
-      const totalFees = document.getElementById('totalFeesRUB').textContent;
-      const commFee = document.getElementById('commFee').textContent;
-      const payFee = document.getElementById('payFee').textContent;
-      const adFee = document.getElementById('costAdFee').textContent;
-      const returnFee = document.getElementById('costReturnFee').textContent;
-      const brushFee = document.getElementById('costBrushFee').textContent;
-      const pointsFee = document.getElementById('costPointsFee').textContent;
-      
-      const text = `📦 Ozon ${modeText} 定价方案\n\n💰 总成本: ${totalCost}\n💵 建议售价: ${priceMain} (${priceCNY})\n📈 预计利润: ${profit} (${actualMargin})\n\n🏭 平台扣点明细:\n   佣金: ${commFee}\n   支付费: ${payFee}\n   广告费: ${adFee}\n   退货: ${returnFee}\n   刷单费: ${brushFee}\n   积分: ${pointsFee}\n   合计: ${totalFees}\n---\n由 Ozon 定价计算器 v5.0 生成`;
-      
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copyBtn');
-        btn.innerHTML = '<span>✅</span> 已复制!';
-        btn.classList.remove('bg-gray-900', 'hover:bg-gray-800');
-        btn.classList.add('bg-green-600');
-        setTimeout(() => {
-          btn.innerHTML = '<span>📋</span> 复制定价信息';
-          btn.classList.remove('bg-green-600');
-          btn.classList.add('bg-gray-900', 'hover:bg-gray-800');
-        }, 2000);
-      });
-    }
-    
-    // 导出HTML功能
-    function exportAsHTML() {
-      const currencySymbol = currentCurrency === 'rub' ? '₽' : 'KZT ';
-      const modeText = currentMode === 'fbo' ? 'FBO（OZON仓储配送）' : 'FBS（卖家仓储配送）';
-      
-      const procurement = document.getElementById('procurement').value || '0';
-      const weight = document.getElementById('weight').value || '0';
-      const volume = document.getElementById('volume').value || '0';
-      const shippingCN = document.getElementById('shippingCN').value || '0';
-      const shippingDomestic = document.getElementById('shippingDomestic').value || '0';
-      const customs = document.getElementById('customs').value || '0';
-      const storageDays = document.getElementById('storageDays').value || '30';
-      const labeling = document.getElementById('labeling').value || '0';
-      const fbsLastMile = document.getElementById('fbsLastMile').value || '0';
-      const other = document.getElementById('other').value || '0';
-      const commission = document.getElementById('commission').value || '10';
-      const fboStorageRate = document.getElementById('fboStorageRate').value || '0.15';
-      const fboFulfillmentRate = document.getElementById('fboFulfillmentRate').value || '25';
-      const paymentFee = document.getElementById('paymentFee').value || '2';
-      const margin = document.getElementById('margin').value || '25';
-      const rate = document.getElementById('rate').value || '12.5';
-      
-      const priceMain = document.getElementById('priceMain').textContent;
-      const priceCNY = document.getElementById('priceCNY').textContent;
-      const totalCostCN = document.getElementById('totalCostCN').textContent;
-      const totalFeesLocal = document.getElementById('totalFeesLocal').textContent;
-      const totalFeesCNY = document.getElementById('totalFeesCNY').textContent;
-      const grandTotalCost = document.getElementById('grandTotalCost').textContent;
-      const profit = document.getElementById('profit').textContent;
-      const actualMargin = document.getElementById('actualMargin').textContent;
-      const marginOk = document.getElementById('marginOk').textContent;
-      const costFulfillment = document.getElementById('costFulfillment').textContent;
-      const costFBOStorage = document.getElementById('costFBOStorage').textContent;
-      const costFbsDelivery = document.getElementById('costFbsDelivery').textContent;
-      const commFee = document.getElementById('commFee').textContent;
-      const payFee = document.getElementById('payFee').textContent;
-      const totalFeesRUB = document.getElementById('totalFeesRUB').textContent;
-      const cost1 = document.getElementById('cost1').textContent;
-      const costDomestic = document.getElementById('costDomestic').textContent;
-      const costShipping = document.getElementById('costShipping').textContent;
-      const costCustoms = document.getElementById('costCustoms').textContent;
-      const costLabeling = document.getElementById('costLabeling').textContent;
-      const costFbsLastMile = document.getElementById('costFbsLastMile').textContent;
-      const costOther = document.getElementById('costOther').textContent;
-      const totalCostCN2 = document.getElementById('totalCostCN2').textContent;
-      
-      const commissionText = {
-        '10': '电子产品 (10%)',
-        '8': '服装鞋类 (8%)',
-        '10': '家居用品 (10%)',
-        '12': '化妆品 (12%)',
-        '15': '其他类目 (15%)'
-      }[commission] || commission + '%';
-      
-      const now = new Date();
-      const dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-      const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-      
-      const htmlContent = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ozon ${modeText} 定价方案 - ${dateStr}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; }
-    .header { background: linear-gradient(135deg, ${currentMode === 'fbo' ? '#3b82f6' : '#22c55e'}, ${currentMode === 'fbo' ? '#2563eb' : '#16a34a'}); color: white; padding: 24px; border-radius: 16px 16px 0 0; text-align: center; }
-    .header h1 { font-size: 22px; margin-bottom: 4px; }
-    .header p { opacity: 0.9; font-size: 13px; }
-    .badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-top: 8px; }
-    .card { background: white; margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .card-header { padding: 14px 18px; font-weight: 600; font-size: 14px; border-bottom: 1px solid #eee; }
-    .card-body { padding: 14px 18px; }
-    .price-box { background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 28px; text-align: center; border-radius: 0 0 16px 16px; margin-bottom: 16px; }
-    .price-label { font-size: 13px; opacity: 0.9; margin-bottom: 4px; }
-    .price-value { font-size: 36px; font-weight: 700; }
-    .price-secondary { font-size: 20px; opacity: 0.9; margin-top: 4px; }
-    .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-    .row:last-child { border-bottom: none; }
-    .row-label { color: #666; }
-    .row-value { font-weight: 500; color: #333; }
-    .row-value.red { color: #ef4444; }
-    .row-value.green { color: #22c55e; }
-    .section-title { font-size: 13px; font-weight: 600; color: #888; margin: 16px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
-    .total-row { background: #f9fafb; margin: 0 -18px -14px -18px; padding: 14px 18px; display: flex; justify-content: space-between; font-weight: 600; font-size: 15px; }
-    .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
-    .footer a { color: #f97316; text-decoration: none; }
-    .input-summary { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 13px; color: #666; }
-    .input-summary p { margin: 4px 0; }
-    .margin-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .margin-ok { background: #dcfce7; color: #16a34a; }
-    .margin-fail { background: #fee2e2; color: #dc2626; }
-    .mode-badge { background: ${currentMode === 'fbo' ? '#dbeafe' : '#dcfce7'}; color: ${currentMode === 'fbo' ? '#1d4ed8' : '#15803d'}; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>📦 Ozon ${modeText} 定价方案</h1>
-      <p>${dateStr} ${timeStr}</p>
-      <span class="badge"><span class="mode-badge">${currentMode.toUpperCase()}</span> <span class="badge">${currentCurrency === 'rub' ? '₽ 卢布' : 'KZT 坚戈'}</span></span>
-    </div>
-    
-    <div class="price-box">
-      <p class="price-label">💵 建议售价 (${currencySymbol})</p>
-      <p class="price-value">${priceMain.replace(currencySymbol, '')}</p>
-      <p class="price-secondary">≈ ${priceCNY}</p>
-    </div>
-    
-    <div class="card">
-      <div class="card-header">📈 利润分析</div>
-      <div class="card-body">
-        <div class="row">
-          <span class="row-label">预计利润</span>
-          <span class="row-value green">${profit}</span>
-        </div>
-        <div class="row">
-          <span class="row-label">实际利润率</span>
-          <span class="row-value ${parseFloat(actualMargin) >= 25 ? 'green' : 'red'}">${actualMargin}</span>
-        </div>
-        <div class="row">
-          <span class="row-label">利润率达标</span>
-          <span><span class="margin-badge ${parseFloat(actualMargin) >= 25 ? 'margin-ok' : 'margin-fail'}">${marginOk}</span></span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card">
-      <div class="card-header">💰 成本明细</div>
-      <div class="card-body">
-        <p class="section-title">中国段成本</p>
-        <div class="row">
-          <span class="row-label">采购成本</span>
-          <span class="row-value">${cost1}</span>
-        </div>
-        <div class="row">
-          <span class="row-label">头程国内运费</span>
-          <span class="row-value">${costDomestic}</span>
-        </div>
-        <div class="row">
-          <span class="row-label">头程-中国→俄罗斯</span>
-          <span class="row-value">${costShipping}</span>
-        </div>
-        <div class="row">
-          <span class="row-label">报关/清关费</span>
-          <span class="row-value">${costCustoms}</span>
-        </div>
-        ${currentMode === 'fbo' ? `
-        <div class="row">
-          <span class="row-label">贴单处理费</span>
-          <span class="row-value">${costLabeling}</span>
-        </div>
-        ` : `
-        <div class="row">
-          <span class="row-label">FBS尾程配送</span>
-          <span class="row-value">${costFbsLastMile}</span>
-        </div>
-        `}
-        <div class="row">
-          <span class="row-label">其他费用</span>
-          <span class="row-value">${costOther}</span>
-        </div>
-        <div class="total-row">
-          <span>中国段总成本</span>
-          <span>${totalCostCN2}</span>
-        </div>
-        
-        <p class="section-title">平台费用 (${currencySymbol})</p>
-        ${currentMode === 'fbo' ? `
-        <div class="row">
-          <span class="row-label">FBO操作费 (拣货打包配送)</span>
-          <span class="row-value red">${costFulfillment}</span>
-        </div>
-        <div class="row">
-          <span class="row-label">FBO仓储费 (${storageDays}天)</span>
-          <span class="row-value red">${costFBOStorage}</span>
-        </div>
-        ` : `
-        <div class="row">
-          <span class="row-label">FBS配送服务费</span>
-          <span class="row-value red">${costFbsDelivery}</span>
-        </div>
-        `}
-        <div class="row">
-          <span class="row-label">Ozon佣金 (${commission}%)</span>
-          <span class="row-value red">${commFee}</span>
-        </div>
-        <div class="row">
-          <span class="row-label">支付手续费 (${paymentFee}%)</span>
-          <span class="row-value red">${payFee}</span>
-        </div>
-        <div class="total-row">
-          <span>平台总扣点</span>
-          <span class="red">${totalFeesRUB} (≈${totalFeesCNY})</span>
-        </div>
-        
-        <div class="total-row" style="background:#fef3c7; margin-top:12px;">
-          <span>📦 总成本 (¥)</span>
-          <span>${grandTotalCost}</span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card">
-      <div class="card-header">⚙️ 计算参数</div>
-      <div class="card-body">
-        <div class="input-summary">
-          <p>📦 商品重量: <strong>${weight} kg</strong></p>
-          <p>📐 商品体积: <strong>${volume} m³</strong></p>
-          <p>🚚 头程运费: <strong>¥${shippingCN}/kg</strong></p>
-          <p>📋 发货模式: <strong>${modeText}</strong></p>
-          <p>🏭 OZON类目: <strong>${commissionText}</strong></p>
-          <p>🎯 目标利润率: <strong>${margin}%</strong></p>
-          <p>💱 汇率: <strong>¥${rate} = ${currencySymbol}1</strong></p>
-        </div>
-      </div>
-    </div>
-    
-    <div class="footer">
-      <p>由 <a href="#">Ozon 定价计算器</a> 生成</p>
-      <p style="margin-top:4px;">导出时间: ${dateStr} ${timeStr}</p>
-    </div>
-  </div>
-</body>
-</html>`;
-      
-      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Ozon_${currentMode.toUpperCase()}_${currentCurrency === 'rub' ? 'RUB' : 'KZT'}_${dateStr}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      const btn = document.getElementById('exportBtn');
-      btn.innerHTML = '<span>✅</span> 已导出!';
-      btn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
-      btn.classList.add('bg-green-600');
-      setTimeout(() => {
-        btn.innerHTML = '<span>📄</span> 导出HTML文件';
-        btn.classList.remove('bg-green-600');
-        btn.classList.add('bg-orange-500', 'hover:bg-orange-600');
-      }, 2000);
+      // 净收入分析
+      document.getElementById('revenue').textContent = currencySymbol + revenue.toFixed(2);
+      document.getElementById('bonusOffset').textContent = '+' + currencySymbol + pointsIncome.toFixed(2);
+      document.getElementById('deductiblePointsDisplay').textContent = '+' + currencySymbol + deductiblePoints.toFixed(2);
+      document.getElementById('remainingPointsDisplay').textContent = '+' + currencySymbol + remainingPoints.toFixed(2);
+      document.getElementById('pointsUtilizationDisplay').textContent = pointsUtilization.toFixed(1) + '%';
+      document.getElementById('totalRevenue').textContent = currencySymbol + totalRevenue.toFixed(2);
+      document.getElementById('costCNLocal').textContent = '-' + currencySymbol + costCNLocal.toFixed(2);
+      document.getElementById('commissionCost').textContent = '-' + currencySymbol + commissionAfterPoints.toFixed(2);
+      document.getElementById('adCost').textContent = '-' + currencySymbol + adCost.toFixed(2);
+      document.getElementById('paymentCost').textContent = '-' + currencySymbol + paymentCost.toFixed(2);
+      document.getElementById('deliveryCost').textContent = '-' + currencySymbol + deliveryCost.toFixed(2);
+      document.getElementById('returnCost').textContent = '-' + currencySymbol + returnCost.toFixed(2);
+      document.getElementById('brushCost').textContent = '-' + currencySymbol + brushCost.toFixed(2);
+      document.getElementById('withdrawalCost').textContent = '-' + currencySymbol + withdrawalCost.toFixed(2);
+      document.getElementById('totalCostLocal').textContent = '-' + currencySymbol + totalCostLocal.toFixed(2);
+      document.getElementById('netIncomeLocal').textContent = currencySymbol + netIncomeLocal.toFixed(2);
+      document.getElementById('netIncomeCNY').textContent = '¥' + netIncomeCNY.toFixed(2);
+      document.getElementById('actualNetMargin').textContent = actualNetMargin.toFixed(1) + '%';
     }
     
     // 初始化
     setMode('fbo');
     setCurrency('rub');
-    fetchExchangeRates();  // 获取实时汇率
-    calculate();
+    calculate(); // 确保初始计算
   </script>
 </body>
 </html>
