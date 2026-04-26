@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云仓代发费用对账系统 | Система сверки стоимости облачного фулфилмента</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .order-box { background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-left: 4px solid #22c55e; }
+    .return-box { background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; }
+    .material-box { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-left: 4px solid #3b82f6; }
+    .service-box { background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-left: 4px solid #8b5cf6; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-6 px-4">
+  <div class="max-w-6xl mx-auto">
+    <!-- 标题 -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm mb-6 text-center">
+      <h1 class="text-2xl font-bold text-gray-900">📦 云仓代发费用对账系统 v5.1</h1>
+      <h2 class="text-lg font-bold text-gray-600 mt-1">📦 Система сверки стоимости облачного фулфилмента v5.1</h2>
+      <p class="text-gray-500 text-sm mt-1">合同: NFT-20250422-1 | Договор: NFT-20250422-1</p>
+      <p class="text-gray-500 text-sm">Xiao Ma Ltd. → Asia Song Ltd.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6 mb-6">
+      <!-- 左侧：数据录入 -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <h2 class="text-lg font-bold text-gray-900 mb-2">📝 今日录入 <span id="editModeText" class="text-sm text-orange-600"></span></h2>
+        <h3 class="text-sm text-gray-600 mb-4">📝 Ввод данных за сегодня</h3>
+        
+        <div class="space-y-4">
+          <!-- 日期 -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">日期 / Дата</label>
+            <input type="date" id="inputDate" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          
+          <!-- 送达揽收点费用 -->
+          <div class="order-box rounded-lg p-4">
+            <h3 class="font-bold text-green-800 mb-1">🚚 送达揽收点费用</h3>
+            <h4 class="text-xs text-green-600 mb-2">🚚 Стоимость доставки до пункта приема</h4>
+            <div class="grid grid-cols-2 gap-3 mb-2">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">一单一件订单数 / Заказы (1 товар)</label>
+                <input type="number" id="inputSingleOrders" min="0" placeholder="单数 / шт."
+                  class="w-full px-3 py-2 border-2 border-green-400 rounded-lg" oninput="previewFee()">
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">一单多件订单数 / Заказы (неск. товаров)</label>
+                <input type="number" id="inputMultiOrders" min="0" placeholder="单数 / шт."
+                  class="w-full px-3 py-2 border-2 border-green-400 rounded-lg" oninput="previewFee()">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-600 mb-1">多件订单平均件数（默认2件） / Ср. кол-во товаров (по умолч. 2)</label>
+              <input type="number" id="avgItems" min="2" value="2" step="1"
+                class="w-full px-3 py-2 border-2 border-green-300 rounded-lg" oninput="previewFee()">
+            </div>
+            <p class="text-xs text-green-600 mt-2">
+              • 一单一件 = 配送费(4元) + 操作费(4元) = 8元<br>
+              • 1 товар = доставка(4¥) + обработка(4¥) = 8¥<br>
+              • 一单2件 = 配送费(5元) + 操作费(4×2=8元) = 13元<br>
+              • 2 товара = доставка(5¥) + обработка(4×2=8¥) = 13¥<br>
+              • 一单3件 = 配送费(6元) + 操作费(4×3=12元) = 18元<br>
+              • 3 товара = доставка(6¥) + обработка(4×3=12¥) = 18¥
+            </p>
+          </div>
+
+          <!-- 包装材料费用 -->
+          <div class="material-box rounded-lg p-4">
+            <h3 class="font-bold text-blue-800 mb-1">📦 包装材料费用</h3>
+            <h4 class="text-xs text-blue-600 mb-2">📦 Стоимость упаковочных материалов</h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">快递袋(个) / Курьерский пакет(шт.)</label>
+                <input type="number" id="inputExpressBag" min="0" value="0" 
+                  class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                <p class="text-xs text-gray-500">单价: 2元/个 / Цена: 2¥/шт.</p>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">纸箱(个) / Картонная коробка(шт.)</label>
+                <input type="number" id="inputBox" min="0" value="0" 
+                  class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                <p class="text-xs text-gray-500">单价: 12元/个 / Цена: 12¥/шт.</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-2">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">气泡袋(个) / Пузырчатый пакет(шт.)</label>
+                <input type="number" id="inputBubbleBag" min="0" value="0" 
+                  class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                <p class="text-xs text-gray-500">单价: 3元/个 / Цена: 3¥/шт.</p>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">缠绕膜(米) / Стрейч-пленка(м)</label>
+                <input type="number" id="inputWrap" min="0" value="0" 
+                  class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                <p class="text-xs text-gray-500">单价: 1.2元/米 / Цена: 1.2¥/м</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 退货费用 -->
+          <div class="return-box rounded-lg p-4">
+            <h3 class="font-bold text-amber-800 mb-1">📦 退货费用</h3>
+            <h4 class="text-xs text-amber-600 mb-2">📦 Стоимость возвратов</h4>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs text-gray-600 mb-1">退货提货单数 / Кол-во возвратов</label>
+                <input type="number" id="returnOrders" min="0" value="0" 
+                  class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+              </div>
+            </div>
+            <p class="text-xs text-amber-600 mt-2">退货提货只按单号数计收，5元/单 / Возврат рассчитывается по количеству заказов, 5¥/заказ</p>
+          </div>
+
+          <!-- 增值服务费用 -->
+          <div class="service-box rounded-lg p-4">
+            <div class="flex justify-between items-center cursor-pointer" onclick="toggleServiceSection()">
+              <div>
+                <h3 class="font-bold text-purple-800">✨ 增值服务费用</h3>
+                <h4 class="text-xs text-purple-600">✨ Дополнительные услуги</h4>
+              </div>
+              <span id="serviceArrow">▼</span>
+            </div>
+            <div id="serviceSection" class="hidden mt-3 space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">清点费/盘点费(件) / Пересчет/инвентаризация(шт.)</label>
+                  <input type="number" id="inputCounting" min="0" value="0" 
+                    class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                  <p class="text-xs text-gray-500">单价: 2元/件 / Цена: 2¥/шт.</p>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">拆分SKU(SKU) / Разделение SKU(SKU)</label>
+                  <input type="number" id="inputSplitSKU" min="0" value="0" 
+                    class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                  <p class="text-xs text-gray-500">单价: 1.5元/SKU / Цена: 1.5¥/SKU</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">拆箱(件) / Распаковка(шт.)</label>
+                  <input type="number" id="inputUnpacking" min="0" value="0" 
+                    class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                  <p class="text-xs text-gray-500">单价: 2元/件 / Цена: 2¥/шт.</p>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">拍照(SKU) / Фотографирование(SKU)</label>
+                  <input type="number" id="inputPhoto" min="0" value="0" 
+                    class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                  <p class="text-xs text-gray-500">单价: 2元/SKU / Цена: 2¥/SKU</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">拍视频(条) / Видеосъемка(ролик)</label>
+                  <input type="number" id="inputVideo" min="0" value="0" 
+                    class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                  <p class="text-xs text-gray-500">单价: 5元/条 / Цена: 5¥/ролик</p>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">产品核重(SKU) / Проверка веса(SKU)</label>
+                  <input type="number" id="inputWeighing" min="0" value="0" 
+                    class="w-full px-3 py-2 border rounded-lg" oninput="previewFee()">
+                  <p class="text-xs text-gray-500">单价: 2元/SKU / Цена: 2¥/SKU</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 预览区域 -->
+          <div id="previewBox" class="hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
+            <p class="font-bold mb-1">💰 今日费用预览</p>
+            <p class="text-xs opacity-80 mb-3">💰 Предварительный расчет за сегодня</p>
+            <div class="text-sm space-y-1">
+              <div class="flex justify-between"><span>★ 送达揽收点费用:</span><span id="pDeliveryFee" class="font-bold">¥0</span></div>
+              <div class="flex justify-between"><span>包装材料费:</span><span id="pMaterial">¥0</span></div>
+              <div class="flex justify-between"><span>退货提货费:</span><span id="pReturn">¥0</span></div>
+              <div class="flex justify-between"><span>增值服务费:</span><span id="pService">¥0</span></div>
+              <div class="flex justify-between"><span>基础服务费:</span><span id="pBasicService">¥0</span></div>
+              <div class="border-t border-white/30 pt-1 flex justify-between font-bold text-lg">
+                <span>今日合计:</span><span id="pTotal">¥0</span>
+              </div>
+              <div class="text-xs opacity-80 mt-2" id="pDesc"></div>
+            </div>
+          </div>
+          
+          <!-- 保存按钮 -->
+          <button onclick="saveData()" id="saveButton" class="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600">
+            💾 保存今日记录 / Сохранить данные
+          </button>
+          <button onclick="cancelEdit()" id="cancelButton" class="w-full py-3 bg-gray-400 text-white rounded-xl font-bold hover:bg-gray-500 hidden">
+            ❌ 取消编辑 / Отменить
+          </button>
+        </div>
+      </div>
+
+      <!-- 右侧：月度统计 -->
+      <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <h2 class="text-lg font-bold text-gray-900 mb-2">📊 <span id="monthLabel">2026年4月</span> 汇总</h2>
+        <h3 class="text-sm text-gray-600 mb-4">📊 Сводка за <span id="monthLabelRU">апрель 2026</span></h3>
+        
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-5 text-white mb-4">
+          <p class="text-sm opacity-80">应付总额(CNY) / Всего к оплате(CNY)</p>
+          <p id="monthTotal" class="text-4xl font-bold">¥0</p>
+        </div>
+        
+        <div class="order-box rounded-lg p-3 mb-2">
+          <div class="flex justify-between"><span>★ 送达揽收点费用:</span><span id="mDeliveryFee" class="font-bold">¥0</span></div>
+          <div class="text-xs text-gray-600 mb-1">订单数: <span id="mOrders">0</span> 单 / зак.</div>
+          <div class="text-xs text-gray-600">多件订单: <span id="mMultiOrders">0</span> 单 / зак.</div>
+        </div>
+        
+        <div class="material-box rounded-lg p-3 mb-2">
+          <div class="flex justify-between"><span>包装材料费:</span><span id="mMaterial" class="font-bold">¥0</span></div>
+        </div>
+        
+        <div class="return-box rounded-lg p-3 mb-2">
+          <div class="flex justify-between"><span>退货提货费:</span><span id="mReturnFee" class="font-bold">¥0</span></div>
+        </div>
+        
+        <div class="service-box rounded-lg p-3 mb-2">
+          <div class="flex justify-between"><span>增值服务费:</span><span id="mServiceFee" class="font-bold">¥0</span></div>
+        </div>
+
+        <div class="order-box rounded-lg p-3 mb-2">
+          <div class="flex justify-between"><span>基础服务费:</span><span id="mBasicServiceFee" class="font-bold">¥0</span></div>
+          <div class="text-xs text-gray-600">单价: <span id="mBasicServicePrice">0</span> 元/单</div>
+        </div>
+        
+        <div class="flex justify-between py-2 border-b">
+          <span>仓储费(3000元/月):</span>
+          <span id="mStorage">¥0</span>
+        </div>
+        
+        <div class="flex justify-between py-2 font-bold text-lg">
+          <span>月总计:</span>
+          <span id="mSum">¥0</span>
+        </div>
+        
+        <!-- 月平均信息 -->
+        <div class="mt-4 bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+          <h4 class="font-bold text-yellow-800 text-sm mb-2">📈 月平均统计 / Среднемесячная статистика</h4>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>月总订单数: <span id="mTotalOrdersMonth" class="font-bold">0</span></div>
+            <div>当月天数: <span id="mDaysInMonth" class="font-bold">30</span></div>
+            <div>月平均日订单: <span id="mAvgDailyOrders" class="font-bold">0</span></div>
+            <div>仓储费状态: <span id="mStorageStatus" class="font-bold">-</span></div>
+            <div>基础服务费天数: <span id="mBasicServiceDays" class="font-bold">0</span>天</div>
+          </div>
+        </div>
+        
+        <!-- 汇率换算 -->
+        <div class="mt-4 bg-purple-50 rounded-lg p-3">
+          <label class="block text-sm font-medium text-purple-700 mb-2">汇率(KZT/CNY) / Курс(KZT/CNY)</label>
+          <input type="number" id="kztRate" step="0.0001" placeholder="输入汇率 / Введите курс" 
+                 class="w-full px-3 py-2 border rounded-lg" oninput="updateKZT()">
+          <p class="text-center text-2xl font-bold text-purple-700 mt-2">KZT <span id="monthKZT">0</span></p>
+        </div>
+        
+        <!-- 导出按钮 -->
+        <button onclick="exportCSV()" class="w-full mt-4 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">
+          📊 导出明细CSV / Экспорт деталей CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- 每日明细表格 -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-gray-900 mb-2">📅 每日明细（按时间升序）</h2>
+          <h3 class="text-sm text-gray-600">📅 Ежедневные данные (по возрастанию даты)</h3>
+        </div>
+        <button onclick="exportDailyCSV()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
+          📥 导出明细CSV / Экспорт
+        </button>
+      </div>
+      
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="px-3 py-2 text-left">日期 / Дата</th>
+            <th class="px-3 py-2 text-right order-box">订单数 / Заказы</th>
+            <th class="px-3 py-2 text-right order-box">送达揽收点 / Доставка</th>
+            <th class="px-3 py-2 text-right material-box">包装材料 / Материалы</th>
+            <th class="px-3 py-2 text-right return-box">退货提货 / Возвраты</th>
+            <th class="px-3 py-2 text-right service-box">增值服务 / Доп. услуги</th>
+            <th class="px-3 py-2 text-right order-box">基础服务 / Базовая услуга</th>
+            <th class="px-3 py-2 text-right font-bold">当日合计 / Итог дня</th>
+            <th class="px-3 py-2 text-center">操作 / Действие</th>
+          </tr>
+        </thead>
+        <tbody id="dailyBody" class="divide-y">
+          <tr>
+            <td colspan="9" class="text-center text-gray-400 py-8">
+              暂无数据 / Нет данных
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 对账单 -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-lg font-bold text-gray-900 mb-2">📄 财务对账单</h2>
+          <h3 class="text-sm text-gray-600">📄 Счёт-сверка</h3>
+        </div>
+        <button onclick="exportInvoiceCSV()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+          📄 导出对账单CSV / Экспорт счета
+        </button>
+      </div>
+      
+      <div class="border-2 border-gray-300 rounded-xl p-6">
+        <div class="text-center mb-6">
+          <h1 class="text-xl font-bold">云仓代发服务费用对账单</h1>
+          <h2 class="text-lg text-gray-600 mt-1">Счёт-сверка стоимости облачного фулфилмента</h2>
+          <p class="text-gray-500 text-sm mt-1">周期: <span id="invPeriod"></span> | Период: <span id="invPeriodRU"></span></p>
+          <p class="text-gray-500 text-sm">合同: NFT-20250422-1 | Договор: NFT-20250422-1</p>
+        </div>
+        
+        <table class="w-full text-sm mb-4">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="px-3 py-2 text-left">项目 / Статья</th>
+              <th class="px-3 py-2 text-right">数量 / Кол-во</th>
+              <th class="px-3 py-2 text-right">单价 / Цена</th>
+              <th class="px-3 py-2 text-right">金额 / Сумма</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr class="order-box">
+              <td class="px-3 py-2 font-bold">★ 送达揽收点费用</td>
+              <td id="iOrders" class="px-3 py-2 text-right">-</td>
+              <td class="px-3 py-2 text-right">阶梯 / Тариф</td>
+              <td id="iDeliveryFee" class="px-3 py-2 text-right font-bold">¥0</td>
+            </tr>
+            <tr class="order-box">
+              <td class="px-3 py-2">基础服务费 / Базовая услуга</td>
+              <td id="iBasicServiceOrders" class="px-3 py-2 text-right">- 单 / зак.</td>
+              <td id="iBasicServicePrice" class="px-3 py-2 text-right">6.5元/单 / 6.5¥/зак.</td>
+              <td id="iBasicServiceFee" class="px-3 py-2 text-right font-bold">¥0</td>
+            </tr>
+            <tr class="material-box">
+              <td class="px-3 py-2">包装材料费 / Материалы</td>
+              <td class="px-3 py-2 text-right">-</td>
+              <td class="px-3 py-2 text-right">-</td>
+              <td id="iMaterial" class="px-3 py-2 text-right font-bold">¥0</td>
+            </tr>
+            <tr class="return-box">
+              <td class="px-3 py-2">退货提货费 / Возвраты</td>
+              <td id="iReturnOrders" class="px-3 py-2 text-right">- 单 / зак.</td>
+              <td class="px-3 py-2 text-right">5元/单 / 5¥/зак.</td>
+              <td id="iReturnFee" class="px-3 py-2 text-right font-bold">¥0</td>
+            </tr>
+            <tr class="service-box">
+              <td class="px-3 py-2">增值服务费 / Доп. услуги</td>
+              <td class="px-3 py-2 text-right">-</td>
+              <td class="px-3 py-2 text-right">-</td>
+              <td id="iServiceFee" class="px-3 py-2 text-right font-bold">¥0</td>
+            </tr>
+            <tr>
+              <td class="px-3 py-2">仓储费 / Хранение</td>
+              <td id="iDays" class="px-3 py-2 text-right">-天 / дн.</td>
+              <td class="px-3 py-2 text-right">3000/月 / 3000/мес.</td>
+              <td id="iStorage" class="px-3 py-2 text-right">¥0</td>
+            </tr>
+            <tr class="bg-green-100 font-bold text-lg">
+              <td colspan="3" class="px-3 py-3">应付总额(CNY): / Всего к оплате(CNY):</td>
+              <td id="iTotal" class="px-3 py-3 text-right text-green-600">¥0</td>
+            </tr>
+            <tr class="bg-purple-100 font-bold text-lg">
+              <td colspan="3" class="px-3 py-3">应付总额(KZT): / Всего к оплате(KZT):</td>
+              <td id="iKZT" class="px-3 py-3 text-right text-purple-600">KZT 0</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="text-sm text-gray-600 mt-4">
+          <p><strong>付款 / Платежные реквизиты:</strong></p>
+          <p>Xiao Ma Ltd. | KZ178562203150533387 | KCJBKZKX</p>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-4 mt-6 text-center text-sm">
+          <div>
+            甲方签字:<br>Подпись Исполнителя:<br>
+            <span class="border-b-2 border-gray-300 inline-block w-32 mt-2">________________</span>
+          </div>
+          <div>
+            乙方签字:<br>Подпись Заказчика:<br>
+            <span class="border-b-2 border-gray-300 inline-block w-32 mt-2">________________</span>
+          </div>
+          <div>
+            日期:<br>Дата:<br>
+            <span class="border-b-2 border-gray-300 inline-block w-32 mt-2">________________</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// 价格配置
+const DELIVERY_RATES = {
+  shipping: (items) => {
+    if (items === 1) return 4;  // 1件 = 1kg内 = 4元
+    if (items === 2) return 5;  // 2件 = 2kg = 5元
+    if (items === 3) return 6;  // 3件 = 3kg = 6元
+    if (items === 4) return 6;  // 4件 = 4kg = 6元
+    if (items === 5) return 6;  // 5件 = 5kg = 6元
+    if (items <= 10) return 8;  // 6-10件 = 6-10kg = 8元
+    if (items <= 25) return 12; // 11-25件 = 11-25kg = 12元
+    return 0; // 25件以上单独询价
+  },
+  operation: 4  // 操作费 4元/件
+};
+
+const MATERIAL_PRICES = {
+  expressBag: 2,    // 快递袋
+  box: 12,          // 纸箱
+  bubbleBag: 3,     // 气泡袋
+  wrap: 1.2         // 缠绕膜
+};
+
+const SERVICE_PRICES = {
+  counting: 2,      // 清点费/盘点费
+  splitSKU: 1.5,    // 拆分SKU
+  unpacking: 2,     // 拆箱
+  photo: 2,         // 拍照
+  video: 5,         // 拍视频
+  weighing: 2       // 产品核重
+};
+
+const STORAGE_FEE = 3000;   // 仓储费
+let data = {};
+let curM = new Date().getMonth(), curY = new Date().getFullYear();
+let editMode = false;  // 编辑模式标志
+let editingDate = '';  // 正在编辑的日期
+
+// 月份名称（俄语）
+const monthNamesRU = [
+  "январь", "февраль", "март", "апрель", "май", "июнь",
+  "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"
+];
+
+// 获取当月天数
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+window.onload = function() {
+  load();
+  document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('monthLabel').textContent = curY + '年' + (curM+1) + '月';
+  document.getElementById('monthLabelRU').textContent = monthNamesRU[curM] + ' ' + curY;
+  document.getElementById('invPeriod').textContent = curY + '年' + (curM+1) + '月';
+  document.getElementById('invPeriodRU').textContent = monthNamesRU[curM] + ' ' + curY;
+  document.getElementById('mDaysInMonth').textContent = getDaysInMonth(curY, curM);
+  render();
+  update();
+};
+
+// 切换增值服务折叠
+function toggleServiceSection() {
+  const section = document.getElementById('serviceSection');
+  const arrow = document.getElementById('serviceArrow');
+  if (section.classList.contains('hidden')) {
+    section.classList.remove('hidden');
+    arrow.textContent = '▲';
+  } else {
+    section.classList.add('hidden');
+    arrow.textContent = '▼';
+  }
+}
+
+// 计算送达揽收点费用
+function calcDeliveryFee(singleOrders, multiOrders, avgItems) {
+  let totalFee = 0;
+  let totalOrders = singleOrders + multiOrders;
+  let totalItems = 0;
+  
+  // 计算一单一件的费用
+  for (let i = 0; i < singleOrders; i++) {
+    const shipping = DELIVERY_RATES.shipping(1);
+    const operation = DELIVERY_RATES.operation;
+    totalFee += shipping + operation;
+    totalItems += 1;
+  }
+  
+  // 计算一单多件的费用
+  for (let i = 0; i < multiOrders; i++) {
+    const items = Math.round(avgItems);
+    const shipping = DELIVERY_RATES.shipping(items);
+    const operation = DELIVERY_RATES.operation * items;
+    totalFee += shipping + operation;
+    totalItems += items;
+  }
+  
+  return { totalFee, totalOrders, totalItems };
+}
+
+// 计算基础服务费（按每日订单数，当日≥200单时按6.5计算）
+function calcBasicServiceFee(dailyOrders) {
+  if (dailyOrders >= 200) {
+    return dailyOrders * 6.5;
+  } else {
+    return 0;  // 当日<200单，基础服务费不生效
+  }
+}
+
+function previewFee() {
+  const date = document.getElementById('inputDate').value;
+  const singleOrders = +document.getElementById('inputSingleOrders').value || 0;
+  const multiOrders = +document.getElementById('inputMultiOrders').value || 0;
+  const avgItems = +document.getElementById('avgItems').value || 2;
+  const expressBag = +document.getElementById('inputExpressBag').value || 0;
+  const box = +document.getElementById('inputBox').value || 0;
+  const bubbleBag = +document.getElementById('inputBubbleBag').value || 0;
+  const wrap = +document.getElementById('inputWrap').value || 0;
+  const returnOrders = +document.getElementById('returnOrders').value || 0;
+  const counting = +document.getElementById('inputCounting').value || 0;
+  const splitSKU = +document.getElementById('inputSplitSKU').value || 0;
+  const unpacking = +document.getElementById('inputUnpacking').value || 0;
+  const photo = +document.getElementById('inputPhoto').value || 0;
+  const video = +document.getElementById('inputVideo').value || 0;
+  const weighing = +document.getElementById('inputWeighing').value || 0;
+  
+  if (!date || (singleOrders === 0 && multiOrders === 0 && returnOrders === 0 && 
+      expressBag === 0 && box === 0 && bubbleBag === 0 && wrap === 0 &&
+      counting === 0 && splitSKU === 0 && unpacking === 0 && photo === 0 && 
+      video === 0 && weighing === 0)) { 
+    document.getElementById('previewBox').classList.add('hidden'); 
+    return; 
+  }
+  
+  // 计算送达揽收点费用
+  const delivery = calcDeliveryFee(singleOrders, multiOrders, avgItems);
+  const deliveryFee = delivery.totalFee;
+  const totalOrders = delivery.totalOrders;
+  
+  // 计算包装材料费
+  const materialFee = (expressBag * MATERIAL_PRICES.expressBag) + 
+                     (box * MATERIAL_PRICES.box) + 
+                     (bubbleBag * MATERIAL_PRICES.bubbleBag) + 
+                     (wrap * MATERIAL_PRICES.wrap);
+  
+  // 计算退货提货费
+  const returnFee = returnOrders * 5;
+  
+  // 计算增值服务费
+  const addServiceFee = (counting * SERVICE_PRICES.counting) + 
+                       (splitSKU * SERVICE_PRICES.splitSKU) + 
+                       (unpacking * SERVICE_PRICES.unpacking) + 
+                       (photo * SERVICE_PRICES.photo) + 
+                       (video * SERVICE_PRICES.video) + 
+                       (weighing * SERVICE_PRICES.weighing);
+  
+  // 计算基础服务费（当日≥200单时按6.5计算，否则为0）
+  const basicServiceFee = calcBasicServiceFee(totalOrders);
+  const hasBasicService = totalOrders >= 200;
+  
+  const total = deliveryFee + materialFee + returnFee + addServiceFee + basicServiceFee;
+  
+  let desc = `送达揽收点费用: ¥${deliveryFee.toFixed(2)}`;
+  if (hasBasicService) {
+    desc += ` + 基础服务费: ¥${basicServiceFee.toFixed(2)} (当日${totalOrders}单≥200单，按6.5元/单计算)`;
+  } else if (totalOrders > 0) {
+    desc += ` (基础服务费: 当日${totalOrders}单<200单，不收取)`;
+  }
+  
+  document.getElementById('previewBox').classList.remove('hidden');
+  document.getElementById('pDeliveryFee').textContent = '¥' + deliveryFee.toFixed(2);
+  document.getElementById('pMaterial').textContent = '¥' + materialFee.toFixed(2);
+  document.getElementById('pReturn').textContent = '¥' + returnFee.toFixed(2);
+  document.getElementById('pService').textContent = '¥' + addServiceFee.toFixed(2);
+  document.getElementById('pBasicService').textContent = '¥' + basicServiceFee.toFixed(2);
+  document.getElementById('pTotal').textContent = '¥' + total.toFixed(2);
+  document.getElementById('pDesc').textContent = desc;
+}
+
+// 加载数据到表单
+function loadDataToForm(date) {
+  if (!data[date]) return;
+  
+  const t = data[date];
+  
+  document.getElementById('inputDate').value = date;
+  document.getElementById('inputSingleOrders').value = t.singleOrders;
+  document.getElementById('inputMultiOrders').value = t.multiOrders;
+  document.getElementById('avgItems').value = t.avgItems;
+  document.getElementById('inputExpressBag').value = t.expressBag;
+  document.getElementById('inputBox').value = t.box;
+  document.getElementById('inputBubbleBag').value = t.bubbleBag;
+  document.getElementById('inputWrap').value = t.wrap;
+  document.getElementById('returnOrders').value = t.returnOrders;
+  document.getElementById('inputCounting').value = t.counting;
+  document.getElementById('inputSplitSKU').value = t.splitSKU;
+  document.getElementById('inputUnpacking').value = t.unpacking;
+  document.getElementById('inputPhoto').value = t.photo;
+  document.getElementById('inputVideo').value = t.video;
+  document.getElementById('inputWeighing').value = t.weighing;
+  
+  // 展开增值服务区域
+  const section = document.getElementById('serviceSection');
+  const arrow = document.getElementById('serviceArrow');
+  if (section.classList.contains('hidden')) {
+    section.classList.remove('hidden');
+    arrow.textContent = '▲';
+  }
+  
+  previewFee();
+}
+
+// 编辑记录
+function editRecord(date) {
+  editMode = true;
+  editingDate = date;
+  
+  document.getElementById('editModeText').textContent = '（编辑模式）';
+  document.getElementById('saveButton').textContent = '💾 更新记录 / Обновить';
+  document.getElementById('saveButton').className = 'w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700';
+  document.getElementById('cancelButton').classList.remove('hidden');
+  
+  loadDataToForm(date);
+  
+  // 滚动到顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 取消编辑
+function cancelEdit() {
+  editMode = false;
+  editingDate = '';
+  
+  document.getElementById('editModeText').textContent = '';
+  document.getElementById('saveButton').textContent = '💾 保存今日记录 / Сохранить данные';
+  document.getElementById('saveButton').className = 'w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600';
+  document.getElementById('cancelButton').classList.add('hidden');
+  
+  // 清空表单
+  document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('inputSingleOrders').value = '';
+  document.getElementById('inputMultiOrders').value = '';
+  document.getElementById('avgItems').value = 2;
+  document.getElementById('inputExpressBag').value = '0';
+  document.getElementById('inputBox').value = '0';
+  document.getElementById('inputBubbleBag').value = '0';
+  document.getElementById('inputWrap').value = '0';
+  document.getElementById('returnOrders').value = '0';
+  document.getElementById('inputCounting').value = '0';
+  document.getElementById('inputSplitSKU').value = '0';
+  document.getElementById('inputUnpacking').value = '0';
+  document.getElementById('inputPhoto').value = '0';
+  document.getElementById('inputVideo').value = '0';
+  document.getElementById('inputWeighing').value = '0';
+  document.getElementById('previewBox').classList.add('hidden');
+}
+
+function saveData() {
+  const date = document.getElementById('inputDate').value;
+  const singleOrders = +document.getElementById('inputSingleOrders').value || 0;
+  const multiOrders = +document.getElementById('inputMultiOrders').value || 0;
+  const avgItems = +document.getElementById('avgItems').value || 2;
+  const expressBag = +document.getElementById('inputExpressBag').value || 0;
+  const box = +document.getElementById('inputBox').value || 0;
+  const bubbleBag = +document.getElementById('inputBubbleBag').value || 0;
+  const wrap = +document.getElementById('inputWrap').value || 0;
+  const returnOrders = +document.getElementById('returnOrders').value || 0;
+  const counting = +document.getElementById('inputCounting').value || 0;
+  const splitSKU = +document.getElementById('inputSplitSKU').value || 0;
+  const unpacking = +document.getElementById('inputUnpacking').value || 0;
+  const photo = +document.getElementById('inputPhoto').value || 0;
+  const video = +document.getElementById('inputVideo').value || 0;
+  const weighing = +document.getElementById('inputWeighing').value || 0;
+  
+  if (!date) { 
+    alert('请选择日期 / Выберите дату'); 
+    return; 
+  }
+  if (singleOrders === 0 && multiOrders === 0 && returnOrders === 0 && 
+      expressBag === 0 && box === 0 && bubbleBag === 0 && wrap === 0 &&
+      counting === 0 && splitSKU === 0 && unpacking === 0 && photo === 0 && 
+      video === 0 && weighing === 0) { 
+    alert('请输入数据 / Введите данные'); 
+    return; 
+  }
+  
+  // 计算各项费用
+  const delivery = calcDeliveryFee(singleOrders, multiOrders, avgItems);
+  const deliveryFee = delivery.totalFee;
+  const totalOrders = delivery.totalOrders;
+  const materialFee = (expressBag * MATERIAL_PRICES.expressBag) + 
+                     (box * MATERIAL_PRICES.box) + 
+                     (bubbleBag * MATERIAL_PRICES.bubbleBag) + 
+                     (wrap * MATERIAL_PRICES.wrap);
+  const returnFee = returnOrders * 5;
+  const addServiceFee = (counting * SERVICE_PRICES.counting) + 
+                       (splitSKU * SERVICE_PRICES.splitSKU) + 
+                       (unpacking * SERVICE_PRICES.unpacking) + 
+                       (photo * SERVICE_PRICES.photo) + 
+                       (video * SERVICE_PRICES.video) + 
+                       (weighing * SERVICE_PRICES.weighing);
+  
+  // 计算基础服务费（当日≥200单时按6.5计算，否则为0）
+  const basicServiceFee = calcBasicServiceFee(totalOrders);
+  const hasBasicService = totalOrders >= 200;
+  
+  const total = deliveryFee + materialFee + returnFee + addServiceFee + basicServiceFee;
+  
+  data[date] = {
+    date,
+    singleOrders,
+    multiOrders,
+    avgItems,
+    expressBag,
+    box,
+    bubbleBag,
+    wrap,
+    returnOrders,
+    counting,
+    splitSKU,
+    unpacking,
+    photo,
+    video,
+    weighing,
+    deliveryFee,
+    materialFee,
+    returnFee,
+    addServiceFee,
+    basicServiceFee,
+    hasBasicService,  // 记录当日是否达到基础服务费生效门槛
+    totalOrders,
+    total
+  };
+  
+  save(); 
+  render(); 
+  update();
+  
+  if (editMode) {
+    cancelEdit();
+  } else {
+    document.getElementById('inputSingleOrders').value = '';
+    document.getElementById('inputMultiOrders').value = '';
+    document.getElementById('avgItems').value = 2;
+    document.getElementById('inputExpressBag').value = '0';
+    document.getElementById('inputBox').value = '0';
+    document.getElementById('inputBubbleBag').value = '0';
+    document.getElementById('inputWrap').value = '0';
+    document.getElementById('returnOrders').value = '0';
+    document.getElementById('inputCounting').value = '0';
+    document.getElementById('inputSplitSKU').value = '0';
+    document.getElementById('inputUnpacking').value = '0';
+    document.getElementById('inputPhoto').value = '0';
+    document.getElementById('inputVideo').value = '0';
+    document.getElementById('inputWeighing').value = '0';
+    document.getElementById('previewBox').classList.add('hidden');
+  }
+  
+  alert(editMode ? '记录已更新！ / Запись обновлена!' : '记录已保存！ / Запись сохранена!');
+}
+
+function render() {
+  const tbody = document.getElementById('dailyBody');
+  const dates = Object.keys(data).sort();  // 按时间升序排序
+  
+  if (!dates.length) { 
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-gray-400 py-8">暂无数据 / Нет данных</td></tr>'; 
+    return; 
+  }
+  
+  tbody.innerHTML = dates.map(d => {
+    const t = data[d];
+    return '<tr class="hover:bg-gray-50">' +
+           '<td class="px-3 py-2 font-medium">'+d+'</td>' +
+           '<td class="px-3 py-2 text-right order-box font-bold">'+(t.singleOrders + t.multiOrders)+'</td>' +
+           '<td class="px-3 py-2 text-right order-box">¥'+t.deliveryFee.toFixed(2)+'</td>' +
+           '<td class="px-3 py-2 text-right material-box">¥'+t.materialFee.toFixed(2)+'</td>' +
+           '<td class="px-3 py-2 text-right return-box">¥'+t.returnFee.toFixed(2)+'</td>' +
+           '<td class="px-3 py-2 text-right service-box">¥'+t.addServiceFee.toFixed(2)+'</td>' +
+           '<td class="px-3 py-2 text-right order-box">¥'+t.basicServiceFee.toFixed(2)+'</td>' +
+           '<td class="px-3 py-2 text-right font-bold">¥'+t.total.toFixed(2)+'</td>' +
+           '<td class="px-3 py-2 text-center space-x-2">' +
+           '<button onclick="editRecord(\''+d+'\')" class="text-blue-500 hover:text-blue-700" title="编辑 / Редактировать">✏️</button>' +
+           '<button onclick="del(\''+d+'\')" class="text-red-500 hover:text-red-700" title="删除 / Удалить">🗑️</button>' +
+           '</td></tr>';
+  }).join('');
+}
+
+function update() {
+  const dates = Object.keys(data);
+  if (!dates.length) {
+    resetStats();
+    return;
+  }
+  
+  // 汇总数据
+  let totalOrders = 0;
+  let totalDeliveryFee = 0;
+  let totalMaterialFee = 0;
+  let totalReturnFee = 0;
+  let totalAddServiceFee = 0;
+  let totalBasicServiceFee = 0;
+  let totalAll = 0;
+  let daysWithBasicService = 0;  // 基础服务费生效的天数
+  let basicServiceOrders = 0;     // 基础服务费生效的订单总数
+  
+  dates.forEach(d => {
+    const t = data[d];
+    totalOrders += t.totalOrders;
+    totalDeliveryFee += t.deliveryFee;
+    totalMaterialFee += t.materialFee;
+    totalReturnFee += t.returnFee;
+    totalAddServiceFee += t.addServiceFee;
+    totalBasicServiceFee += t.basicServiceFee;
+    totalAll += t.total;
+    
+    if (t.hasBasicService) {
+      daysWithBasicService++;
+      basicServiceOrders += t.totalOrders;
+    }
+  });
+  
+  // 计算月平均日订单量
+  const daysInMonth = getDaysInMonth(curY, curM);
+  const avgDailyOrders = totalOrders / daysInMonth;
+  
+  // 根据月平均日订单量计算仓储费
+  let storageFee = 0;
+  let storageStatus = '';
+  if (avgDailyOrders < 500) {
+    storageFee = STORAGE_FEE;
+    storageStatus = '计费3000元';
+  } else if (avgDailyOrders < 800) { // 500-800单之间
+    storageFee = STORAGE_FEE;
+    storageStatus = '计费3000元';
+  } else { // ≥800单
+    storageFee = 0;
+    storageStatus = '免仓储费';
+  }
+  
+  // 重新计算基础服务费（根据月平均日订单量调整单价）
+  let finalBasicServiceFee = 0;
+  let basicServicePrice = 0;
+  
+  if (avgDailyOrders >= 800) {
+    // 月平均≥800单，单价6元
+    basicServicePrice = 6;
+    finalBasicServiceFee = basicServiceOrders * 6;
+  } else {
+    // 月平均<800单，单价6.5元
+    basicServicePrice = 6.5;
+    finalBasicServiceFee = totalBasicServiceFee;  // 使用每日已计算的费用
+  }
+  
+  // 重新计算总费用
+  const monthTotal = totalDeliveryFee + totalMaterialFee + totalReturnFee + 
+                     totalAddServiceFee + finalBasicServiceFee + storageFee;
+  
+  // 更新统计显示
+  document.getElementById('monthTotal').textContent = '¥' + monthTotal.toFixed(2);
+  document.getElementById('mDeliveryFee').textContent = '¥' + totalDeliveryFee.toFixed(2);
+  document.getElementById('mOrders').textContent = totalOrders;
+  document.getElementById('mMultiOrders').textContent = dates.reduce((sum, d) => sum + data[d].multiOrders, 0);
+  document.getElementById('mMaterial').textContent = '¥' + totalMaterialFee.toFixed(2);
+  document.getElementById('mReturnFee').textContent = '¥' + totalReturnFee.toFixed(2);
+  document.getElementById('mServiceFee').textContent = '¥' + totalAddServiceFee.toFixed(2);
+  document.getElementById('mBasicServiceFee').textContent = '¥' + finalBasicServiceFee.toFixed(2);
+  document.getElementById('mBasicServicePrice').textContent = basicServicePrice.toFixed(1) + ' 元/单';
+  document.getElementById('mStorage').textContent = '¥' + storageFee.toFixed(2);
+  document.getElementById('mSum').textContent = '¥' + monthTotal.toFixed(2);
+  
+  // 更新月平均信息
+  document.getElementById('mTotalOrdersMonth').textContent = totalOrders;
+  document.getElementById('mAvgDailyOrders').textContent = avgDailyOrders.toFixed(1);
+  document.getElementById('mStorageStatus').textContent = storageStatus;
+  document.getElementById('mBasicServiceDays').textContent = daysWithBasicService + '天';
+  
+  // 更新对账单
+  document.getElementById('iOrders').textContent = totalOrders;
+  document.getElementById('iDeliveryFee').textContent = '¥' + totalDeliveryFee.toFixed(2);
+  document.getElementById('iBasicServiceOrders').textContent = basicServiceOrders + ' 单 / зак.';
+  document.getElementById('iBasicServicePrice').textContent = basicServicePrice.toFixed(1) + '元/单 / ' + basicServicePrice.toFixed(1) + '¥/зак.';
+  document.getElementById('iBasicServiceFee').textContent = '¥' + finalBasicServiceFee.toFixed(2);
+  document.getElementById('iMaterial').textContent = '¥' + totalMaterialFee.toFixed(2);
+  document.getElementById('iReturnOrders').textContent = dates.reduce((sum, d) => sum + data[d].returnOrders, 0) + ' 单 / зак.';
+  document.getElementById('iReturnFee').textContent = '¥' + totalReturnFee.toFixed(2);
+  document.getElementById('iServiceFee').textContent = '¥' + totalAddServiceFee.toFixed(2);
+  document.getElementById('iDays').textContent = '30天 / дн.';
+  document.getElementById('iStorage').textContent = '¥' + storageFee.toFixed(2);
+  document.getElementById('iTotal').textContent = '¥' + monthTotal.toFixed(2);
+  
+  updateKZT();
+}
+
+function resetStats() {
+  document.getElementById('monthTotal').textContent = '¥0';
+  document.getElementById('mDeliveryFee').textContent = '¥0';
+  document.getElementById('mOrders').textContent = '0';
+  document.getElementById('mMultiOrders').textContent = '0';
+  document.getElementById('mMaterial').textContent = '¥0';
+  document.getElementById('mReturnFee').textContent = '¥0';
+  document.getElementById('mServiceFee').textContent = '¥0';
+  document.getElementById('mBasicServiceFee').textContent = '¥0';
+  document.getElementById('mBasicServicePrice').textContent = '0';
+  document.getElementById('mStorage').textContent = '¥0';
+  document.getElementById('mSum').textContent = '¥0';
+  
+  document.getElementById('mTotalOrdersMonth').textContent = '0';
+  document.getElementById('mAvgDailyOrders').textContent = '0';
+  document.getElementById('mStorageStatus').textContent = '-';
+  document.getElementById('mBasicServiceDays').textContent = '0';
+  
+  document.getElementById('iOrders').textContent = '-';
+  document.getElementById('iDeliveryFee').textContent = '¥0';
+  document.getElementById('iBasicServiceOrders').textContent = '- 单 / зак.';
+  document.getElementById('iBasicServicePrice').textContent = '0元/单 / 0¥/зак.';
+  document.getElementById('iBasicServiceFee').textContent = '¥0';
+  document.getElementById('iMaterial').textContent = '¥0';
+  document.getElementById('iReturnOrders').textContent = '- 单 / зак.';
+  document.getElementById('iReturnFee').textContent = '¥0';
+  document.getElementById('iServiceFee').textContent = '¥0';
+  document.getElementById('iDays').textContent = '-天 / дн.';
+  document.getElementById('iStorage').textContent = '¥0';
+  document.getElementById('iTotal').textContent = '¥0';
+  document.getElementById('iKZT').textContent = 'KZT 0';
+  document.getElementById('monthKZT').textContent = '0';
+}
+
+function updateKZT() {
+  const tot = +document.getElementById('iTotal').textContent.replace('¥','') || 0;
+  const rate = +document.getElementById('kztRate').value || 0;
+  const kzt = tot * rate;
+  document.getElementById('monthKZT').textContent = kzt.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  document.getElementById('iKZT').textContent = 'KZT ' + kzt.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function del(date) {
+  if (confirm('删除 ' + date + '? / Удалить ' + date + '?')) { 
+    delete data[date]; 
+    save(); 
+    render(); 
+    update(); 
+  }
+}
+
+function save() { 
+  localStorage.setItem('wfFinalCorrected', JSON.stringify(data)); 
+}
+
+function load() { 
+  const s = localStorage.getItem('wfFinalCorrected'); 
+  if (s) data = JSON.parse(s); 
+}
+
+// 导出每日明细CSV
+function exportCSV() {
+  const dates = Object.keys(data).sort();  // 按时间升序
+  if (!dates.length) { 
+    alert('无数据 / Нет данных'); 
+    return; 
+  }
+  let csv = '\uFEFF日期,一单一件,一单多件,平均件数,快递袋,纸箱,气泡袋,缠绕膜,退货单数,送达揽收点费,包装材料费,退货提货费,增值服务费,基础服务费,当日合计\n';
+  csv += 'Дата,Заказы(1т),Заказы(мт),Ср.кол-во,Пакет,Коробка,Пузырч.пакет,Пленка,Возвраты,Доставка,Материалы,Возвраты,Доп.услуги,Базовая услуга,Итог дня\n';
+  dates.forEach(d => { 
+    const t = data[d]; 
+    csv += d + ',' + t.singleOrders + ',' + t.multiOrders + ',' + t.avgItems + ',' + 
+           t.expressBag + ',' + t.box + ',' + t.bubbleBag + ',' + t.wrap + ',' + 
+           t.returnOrders + ',' + t.deliveryFee.toFixed(2) + ',' + t.materialFee.toFixed(2) + ',' + 
+           t.returnFee.toFixed(2) + ',' + t.addServiceFee.toFixed(2) + ',' + 
+           t.basicServiceFee.toFixed(2) + ',' + t.total.toFixed(2) + '\n'; 
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); 
+  a.href = URL.createObjectURL(blob); 
+  a.download = '云仓每日明细_' + curY + '年' + (curM+1) + '月.csv'; 
+  a.click();
+}
+
+// 导出每日明细CSV（另一个按钮）
+function exportDailyCSV() {
+  exportCSV();
+}
+
+// 导出对账单CSV
+function exportInvoiceCSV() {
+  const dates = Object.keys(data).sort();
+  if (!dates.length) { 
+    alert('无数据 / Нет данных'); 
+    return; 
+  }
+  
+  // 汇总数据
+  let totalOrders = 0;
+  let totalDeliveryFee = 0;
+  let totalMaterialFee = 0;
+  let totalReturnFee = 0;
+  let totalAddServiceFee = 0;
+  let returnOrdersTotal = 0;
+  let daysWithBasicService = 0;
+  let basicServiceOrders = 0;
+  
+  dates.forEach(d => {
+    const t = data[d];
+    totalOrders += t.totalOrders;
+    totalDeliveryFee += t.deliveryFee;
+    totalMaterialFee += t.materialFee;
+    totalReturnFee += t.returnFee;
+    totalAddServiceFee += t.addServiceFee;
+    returnOrdersTotal += t.returnOrders;
+    
+    if (t.hasBasicService) {
+      daysWithBasicService++;
+      basicServiceOrders += t.totalOrders;
+    }
+  });
+  
+  // 计算月平均日订单量
+  const daysInMonth = getDaysInMonth(curY, curM);
+  const avgDailyOrders = totalOrders / daysInMonth;
+  
+  // 根据月平均日订单量计算仓储费
+  let storageFee = 0;
+  if (avgDailyOrders < 800) { // <800单，计费3000
+    storageFee = STORAGE_FEE;
+  } // ≥800单，免仓储费
+  
+  // 根据月平均日订单量计算基础服务费单价
+  let basicServicePrice = 6.5;
+  if (avgDailyOrders >= 800) {
+    basicServicePrice = 6;
+  }
+  
+  // 重新计算基础服务费
+  const finalBasicServiceFee = basicServiceOrders * basicServicePrice;
+  
+  const monthTotal = totalDeliveryFee + totalMaterialFee + totalReturnFee + 
+                     totalAddServiceFee + finalBasicServiceFee + storageFee;
+  const rate = +document.getElementById('kztRate').value || 60;
+  const kztTotal = monthTotal * rate;
+  
+  let csv = '\uFEFF云仓代发服务费用对账单\n';
+  csv += 'Счет-сверка стоимости облачного фулфилмента\n';
+  csv += '合同号/Номер договора: NFT-20250422-1\n';
+  csv += '结算期间/Период расчета: ' + curY + '年' + (curM+1) + '月\n';
+  csv += '月平均日订单量: ' + avgDailyOrders.toFixed(1) + ' 单/天\n';
+  csv += '基础服务费生效天数: ' + daysWithBasicService + ' 天\n';
+  csv += '生成日期/Дата создания: ' + new Date().toISOString().split('T')[0] + '\n';
+  csv += '\n';
+  csv += '项目,数量,单价,金额(CNY)\n';
+  csv += 'Статья,Кол-во,Цена,Сумма(CNY)\n';
+  csv += '\n';
+  csv += '送达揽收点费用,' + totalOrders + ',阶梯,' + totalDeliveryFee.toFixed(2) + '\n';
+  csv += '基础服务费,' + basicServiceOrders + ',' + basicServicePrice.toFixed(1) + ',' + finalBasicServiceFee.toFixed(2) + '\n';
+  csv += '包装材料费,,-,' + totalMaterialFee.toFixed(2) + '\n';
+  csv += '退货提货费,' + returnOrdersTotal + ',5,' + totalReturnFee.toFixed(2) + '\n';
+  csv += '增值服务费,,-,' + totalAddServiceFee.toFixed(2) + '\n';
+  csv += '仓储费,30天,3000,' + storageFee.toFixed(2) + '\n';
+  csv += '\n';
+  csv += '应付总额(CNY),,,' + monthTotal.toFixed(2) + '\n';
+  csv += '汇率(KZT/CNY),,,' + rate + '\n';
+  csv += '应付总额(KZT),,,' + kztTotal.toFixed(2) + '\n';
+  csv += '\n';
+  csv += '付款信息/Платежная информация:\n';
+  csv += 'Xiao Ma Ltd. | KZ178562203150533387 | KCJBKZKX\n';
+  
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); 
+  a.href = URL.createObjectURL(blob); 
+  a.download = '云仓对账单_' + curY + '年' + (curM+1) + '月.csv'; 
+  a.click();
+}
+</script>
+</body>
+</html>
