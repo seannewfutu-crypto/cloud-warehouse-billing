@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>云仓代发费用对账系统 v6.0</title>
+  <title>云仓代发费用对账系统 v6.1（完整修复版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -15,14 +15,15 @@
 </head>
 <body class="bg-gray-100 min-h-screen py-6 px-4">
   <div class="max-w-6xl mx-auto">
-    <!-- 标题 -->
+    <!-- 标题 - 与图片完全一致 -->
     <div class="bg-white rounded-2xl p-6 shadow-sm mb-6 text-center">
-      <h1 class="text-2xl font-bold text-gray-900">📦 云仓代发费用对账系统 v6.0</h1>
-      <h2 class="text-lg font-bold text-gray-600 mt-1">📦 Система сверки стоимости облачного фулфилмента v6.0</h2>
+      <h1 class="text-2xl font-bold text-gray-900">云仓代发费用对账系统 v6.1（完整修复版）</h1>
+      <h2 class="text-lg font-bold text-gray-600 mt-1">Система сверки стоимости облачного фулфилмента v6.1</h2>
       <p class="text-gray-500 text-sm mt-1">合同: NFT-20250422-1 | Договор: NFT-20250422-1</p>
       <p class="text-gray-500 text-sm">Xiao Ma Ltd. → Asia Song Ltd.</p>
     </div>
 
+    <!-- 主内容区域 -->
     <div class="grid lg:grid-cols-2 gap-6 mb-6">
       <!-- 左侧：数据录入 -->
       <div class="bg-white rounded-2xl p-5 shadow-sm">
@@ -964,11 +965,11 @@ function del(date) {
 }
 
 function save() { 
-  localStorage.setItem('wf_v6.0', JSON.stringify(data)); 
+  localStorage.setItem('wf_v6.1', JSON.stringify(data)); 
 }
 
 function load() { 
-  const s = localStorage.getItem('wf_v6.0'); 
+  const s = localStorage.getItem('wf_v6.1'); 
   if (s) data = JSON.parse(s); 
 }
 
@@ -1090,7 +1091,7 @@ function exportInvoiceCSV() {
   a.click();
 }
 
-// 导入CSV数据
+// 导入CSV数据（修复版，可处理逗号或空格分隔）
 function importCSV() {
   const fileInput = document.getElementById('csvFileInput');
   const file = fileInput.files[0];
@@ -1106,46 +1107,57 @@ function importCSV() {
       const csvData = e.target.result;
       const lines = csvData.split('\n');
       
-      // 检查文件格式（简单的表头验证）
-      if (lines.length < 2 || !lines[0].includes('日期')) {
-        alert('CSV文件格式不正确，请使用本系统导出的文件 / Неверный формат CSV-файла, используйте файл, экспортированный этой системой');
+      if (lines.length < 2) {
+        alert('CSV文件格式不正确 / Неверный формат CSV-файла');
         return;
       }
       
-      // 解析CSV行（跳过中俄双语表头行）
       let importedCount = 0;
       let overwrittenCount = 0;
+      let headerSkipped = false;
       
-      for (let i = 2; i < lines.length; i++) { // 从第3行开始（跳过两行表头）
+      for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        // 分割CSV字段（处理包含逗号的字段）
-        const parts = line.split(',').map(part => part.trim());
-        if (parts.length < 15) continue; // 确保有足够的列
+        const cleanLine = line.replace(/^\uFEFF/, '');
+        
+        if (!headerSkipped) {
+          if (cleanLine.includes('日期') || cleanLine.includes('Дата')) {
+            headerSkipped = true;
+            continue;
+          }
+        }
+        
+        if (!headerSkipped && line.match(/^\d{4}-\d{2}-\d{2}/)) {
+          headerSkipped = true;
+        } else if (!headerSkipped) {
+          continue;
+        }
+        
+        let parts = cleanLine.split(',').map(part => part.trim());
+        if (parts.length === 1) {
+          parts = cleanLine.split(/\s+/).map(part => part.trim());
+        }
+        
+        if (parts.length < 15) {
+          const tabParts = cleanLine.split(/\t/).map(part => part.trim());
+          if (tabParts.length >= 15) {
+            parts = tabParts;
+          } else {
+            continue;
+          }
+        }
         
         const [
-          date,           // 日期
-          singleOrders,   // 一单一件
-          multiOrders,    // 一单多件
-          avgItems,       // 平均件数
-          expressBag,     // 快递袋
-          box,            // 纸箱
-          bubbleBag,      // 气泡袋
-          wrap,           // 缠绕膜
-          returnOrders,   // 退货单数
-          deliveryFee,    // 送达揽收点费
-          materialFee,    // 包装材料费
-          returnFee,      // 退货提货费
-          addServiceFee,  // 增值服务费
-          basicServiceFee,// 基础服务费
-          total           // 当日合计
+          date, singleOrders, multiOrders, avgItems,
+          expressBag, box, bubbleBag, wrap,
+          returnOrders, deliveryFee, materialFee,
+          returnFee, addServiceFee, basicServiceFee, total
         ] = parts;
         
-        // 检查日期格式
         if (!date || !date.match(/^\d{4}-\d{2}-\d{2}$/)) continue;
         
-        // 将字符串转换为数字
         const parsedData = {
           date,
           singleOrders: parseInt(singleOrders) || 0,
@@ -1164,25 +1176,37 @@ function importCSV() {
           total: parseFloat(total) || 0
         };
         
-        // 重新计算总订单数（因为CSV中可能不包含这个字段）
         parsedData.totalOrders = parsedData.singleOrders + parsedData.multiOrders;
-        
-        // 重新计算基础服务费生效状态
         parsedData.hasBasicService = parsedData.totalOrders >= 200;
         
-        // 检查该日期数据是否已存在
         if (data[date]) {
           overwrittenCount++;
         } else {
           importedCount++;
         }
         
-        // 更新或添加数据
         data[date] = parsedData;
       }
       
-      // 保存到本地存储
       save();
+      render();
+      update();
+      fileInput.value = '';
       
-      // 更新界面
-      render()
+      alert(`数据导入成功！\n新增记录: ${importedCount} 条\n覆盖记录: ${overwrittenCount} 条\n\nИмпорт данных успешен!\nНовых записей: ${importedCount}\nПерезаписано записей: ${overwrittenCount}`);
+      
+    } catch (error) {
+      console.error('导入CSV时出错:', error);
+      alert('导入CSV文件时出错，请检查文件格式 / Ошибка при импорте CSV-файла, проверьте формат файла\n错误信息: ' + error.message);
+    }
+  };
+  
+  reader.onerror = function() {
+    alert('读取文件失败 / Ошибка чтения файла');
+  };
+  
+  reader.readAsText(file, 'UTF-8');
+}
+</script>
+</body>
+</html>
